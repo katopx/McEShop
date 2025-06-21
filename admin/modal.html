@@ -1,0 +1,91 @@
+<!-- Modal เพิ่ม/แก้ไขนักศึกษา -->
+<div id="student-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 bg-black bg-opacity-50">
+    <div class="w-full max-w-lg max-h-screen overflow-y-auto bg-white rounded-lg shadow-xl">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="student-modal-title" class="text-xl font-semibold">เพิ่มนักศึกษาใหม่</h3>
+                <button id="close-student-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="text-xl fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="student-form">
+                <input type="hidden" id="student-id" name="id">
+
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div>
+                            <label for="student-prefix" class="block mb-1 text-sm font-medium text-gray-700">คำนำหน้า
+                                *</label>
+                            <select id="student-prefix" name="prefix" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">เลือกคำนำหน้า</option>
+                                <option value="นาย">นาย</option>
+                                <option value="นาง">นาง</option>
+                                <option value="นางสาว">นางสาว</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="student-firstname" class="block mb-1 text-sm font-medium text-gray-700">ชื่อ
+                                *</label>
+                            <input type="text" id="student-firstname" name="firstName" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="สมชาย">
+                        </div>
+                        <div>
+                            <label for="student-lastname" class="block mb-1 text-sm font-medium text-gray-700">นามสกุล
+                                *</label>
+                            <input type="text" id="student-lastname" name="lastName" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="ใจดี">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="student-nickname"
+                            class="block mb-1 text-sm font-medium text-gray-700">ชื่อเล่น</label>
+                        <input type="text" id="student-nickname" name="nickname"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="ชาย">
+                    </div>
+
+                    <div>
+                        <label for="student-phone" class="block mb-1 text-sm font-medium text-gray-700">เบอร์โทรศัพท์
+                            *</label>
+                        <input type="tel" id="student-phone" name="phone" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="012-345-6789" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
+                    </div>
+
+                    <div>
+                        <label for="student-email" class="block mb-1 text-sm font-medium text-gray-700">อีเมล</label>
+                        <input type="email" id="student-email" name="email"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="somchai@email.com">
+                    </div>
+
+                    <div>
+                        <label for="student-study-group" class="block mb-1 text-sm font-medium text-gray-700">กลุ่มเรียน
+                            *</label>
+                        <select id="student-study-group" name="studyGroup" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">เลือกกลุ่มเรียน</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 font-semibold text-white transition duration-200 bg-blue-600 rounded-lg shadow hover:bg-blue-700">
+                        <i class="mr-1 fas fa-save"></i> บันทึก
+                    </button>
+                    <button type="button" id="cancel-student-form"
+                        class="flex-1 px-4 py-2 font-semibold text-white transition duration-200 bg-gray-500 rounded-lg shadow hover:bg-gray-600">
+                        <i class="mr-1 fas fa-times"></i> ยกเลิก
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

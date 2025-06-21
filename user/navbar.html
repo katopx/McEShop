@@ -1,0 +1,117 @@
+<nav class="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-md">
+  <div class="container px-4 mx-auto">
+    <div class="flex items-center justify-between h-16">
+      <!-- Logo -->
+      <div class="flex-shrink-0">
+        <a href="#" id="logo-link"
+          class="text-2xl font-bold text-blue-600 transition duration-300 ease-in-out hover:text-blue-700 hover:scale-105">
+          <i class="mr-2 fas fa-store"></i>McE SHOP
+        </a>
+      </div>
+
+      <!-- Desktop Navigation -->
+      <div class="items-center hidden space-x-1 md:flex">
+        <!-- Home/Dashboard Button -->
+        <button id="home-button" type="button" title="หน้าแรก"
+          class="flex items-center px-4 py-2 text-sm font-medium text-gray-700 transition duration-300 ease-in-out rounded-lg nav-item hover:bg-gray-100 hover:text-blue-600">
+          <i class="mr-2 fas fa-home"></i>
+          <span id="home-text">หน้าแรก</span>
+        </button>
+
+        <!-- Shop Button -->
+        <button id="shop-button" type="button" title="ร้านค้า"
+          class="flex items-center px-4 py-2 text-sm font-medium text-gray-700 transition duration-300 ease-in-out rounded-lg nav-item hover:bg-gray-100 hover:text-green-600">
+          <i class="mr-2 fas fa-store"></i>
+          <span>ร้านค้า</span>
+        </button>
+
+        <!-- Cart Button (Hidden by default) -->
+        <button id="cart-button" type="button" title="ตะกร้าสินค้า"
+          class="relative flex items-center hidden px-4 py-2 text-sm font-medium text-gray-700 transition duration-300 ease-in-out rounded-lg nav-item hover:bg-gray-100 hover:text-purple-600">
+          <i class="mr-2 fas fa-shopping-cart"></i>
+          <span>ตะกร้า</span>
+          <span id="cart-count-badge"
+            class="absolute flex items-center justify-center hidden w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full -top-1 -right-1">0</span>
+        </button>
+
+        <!-- Order History Button (Hidden by default) -->
+        <button id="order-history-button" type="button" title="ประวัติการสั่งซื้อ"
+          class="flex items-center hidden px-4 py-2 text-sm font-medium text-gray-700 transition duration-300 ease-in-out rounded-lg nav-item hover:bg-gray-100 hover:text-orange-600">
+          <i class="mr-2 fas fa-history"></i>
+          <span>ประวัติ</span>
+        </button>
+
+        <!-- Profile Button (Hidden by default) -->
+        <button id="profile-button" type="button" title="ข้อมูลส่วนตัว"
+          class="flex items-center hidden px-4 py-2 text-sm font-medium text-gray-700 transition duration-300 ease-in-out rounded-lg nav-item hover:bg-gray-100 hover:text-indigo-600">
+          <i class="mr-2 fas fa-user"></i>
+          <span>โปรไฟล์</span>
+        </button>
+
+        <!-- Logout Button (Hidden by default) -->
+        <button id="logout-button" type="button" title="ออกจากระบบ"
+          class="flex items-center hidden px-4 py-2 text-sm font-medium text-white transition duration-300 ease-in-out bg-red-500 rounded-lg nav-item hover:bg-red-600">
+          <i class="mr-2 fas fa-sign-out-alt"></i>
+          <span>ออกจากระบบ</span>
+        </button>
+      </div>
+
+      <!-- Mobile menu button -->
+      <div class="md:hidden">
+        <button type="button" id="mobile-menu-button"
+          class="inline-flex items-center justify-center p-2 text-gray-700 transition duration-300 ease-in-out rounded-lg hover:bg-gray-100 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <i class="text-xl transition-transform duration-300 ease-in-out fas fa-bars icon-rotate"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Menu -->
+    <div id="mobile-menu" class="hidden py-2 border-t border-gray-200 md:hidden mobile-menu-enter">
+      <div class="flex flex-col space-y-1">
+        <!-- Home/Dashboard Button Mobile -->
+        <button id="home-button-mobile" type="button"
+          class="flex items-center w-full px-4 py-3 text-sm font-medium text-left text-gray-700 transition duration-300 ease-in-out nav-item-mobile hover:bg-gray-100 hover:text-blue-600 hover:pl-6 menu-item-1">
+          <i class="w-5 mr-3 fas fa-home"></i>
+          <span id="home-text-mobile">หน้าแรก</span>
+        </button>
+
+        <!-- Shop Button Mobile -->
+        <button id="shop-button-mobile" type="button"
+          class="flex items-center w-full px-4 py-3 text-sm font-medium text-left text-gray-700 transition duration-300 ease-in-out nav-item-mobile hover:bg-gray-100 hover:text-green-600 hover:pl-6 menu-item-2">
+          <i class="w-5 mr-3 fas fa-store"></i>
+          <span>ร้านค้า</span>
+        </button>
+
+        <!-- Cart Button Mobile (Hidden by default) -->
+        <button id="cart-button-mobile" type="button"
+          class="relative flex items-center hidden w-full px-4 py-3 text-sm font-medium text-left text-gray-700 transition duration-300 ease-in-out nav-item-mobile hover:bg-gray-100 hover:text-purple-600 hover:pl-6 menu-item-3">
+          <i class="w-5 mr-3 fas fa-shopping-cart"></i>
+          <span>ตะกร้าสินค้า</span>
+          <span id="cart-count-badge-mobile"
+            class="flex items-center justify-center hidden w-6 h-6 ml-auto text-xs font-bold text-white bg-red-500 rounded-full">0</span>
+        </button>
+
+        <!-- Order History Button Mobile (Hidden by default) -->
+        <button id="order-history-button-mobile" type="button"
+          class="flex items-center hidden w-full px-4 py-3 text-sm font-medium text-left text-gray-700 transition duration-300 ease-in-out nav-item-mobile hover:bg-gray-100 hover:text-orange-600 hover:pl-6 menu-item-4">
+          <i class="w-5 mr-3 fas fa-history"></i>
+          <span>ประวัติการสั่งซื้อ</span>
+        </button>
+
+        <!-- Profile Button Mobile (Hidden by default) -->
+        <button id="profile-button-mobile" type="button"
+          class="flex items-center hidden w-full px-4 py-3 text-sm font-medium text-left text-gray-700 transition duration-300 ease-in-out nav-item-mobile hover:bg-gray-100 hover:text-indigo-600 hover:pl-6 menu-item-5">
+          <i class="w-5 mr-3 fas fa-user"></i>
+          <span>ข้อมูลส่วนตัว</span>
+        </button>
+
+        <!-- Logout Button Mobile (Hidden by default) -->
+        <button id="logout-button-mobile" type="button"
+          class="flex items-center hidden w-full px-4 py-3 text-sm font-medium text-left text-white transition duration-300 ease-in-out bg-red-500 rounded-lg nav-item-mobile hover:bg-red-600 hover:scale-105 menu-item-6">
+          <i class="w-5 mr-3 fas fa-sign-out-alt"></i>
+          <span>ออกจากระบบ</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>

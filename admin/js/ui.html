@@ -1,0 +1,131 @@
+<script>
+  function showLoginPage() {
+    $("#admin-container").addClass("hidden");
+    $("#login-container").removeClass("hidden");
+  }
+
+  function showAdminPanel() {
+    $("#login-container").addClass("hidden");
+    $("#admin-container").removeClass("hidden");
+
+    // Initialize Flowbite components
+    initFlowbite();
+
+    renderSidebar();
+    loadPageContent("manage_products-page");
+  }
+
+  function renderSidebar() {
+    const menuContainer = $("#sidebar-menu");
+    menuContainer.empty();
+
+    Object.keys(sidebarMenus).forEach((key) => {
+      const menu = sidebarMenus[key];
+      if (hasPermission(menu.requiredPermission)) {
+        const isActive = key === currentPage ? "bg-gray-200 font-semibold" : "";
+        menuContainer.append(`
+                <li>
+                    <a href="#" data-menu-key="${key}" class="flex items-center p-3 text-gray-900 rounded-lg hover:bg-gray-100 group ${isActive}">
+                        <i class="fas ${menu.icon} w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900"></i>
+                        <span class="ms-3">${menu.name}</span>
+                    </a>
+                </li>
+            `);
+      }
+    });
+
+    // Bind click events
+    $("#sidebar-menu a").on("click", function (e) {
+      e.preventDefault();
+      const menuKey = $(this).data("menu-key");
+      $("#sidebar-menu a").removeClass("bg-gray-200 font-semibold");
+      $(this).addClass("bg-gray-200 font-semibold");
+
+      // Close mobile menu
+      const drawerEl = document.getElementById("default-sidebar");
+      if (drawerEl && $(window).width() < 640) {
+        const drawer = FlowbiteInstances?.getInstance(
+          "Drawer",
+          "default-sidebar",
+        );
+        if (drawer) drawer.hide();
+      }
+
+      loadPageContent(menuKey);
+    });
+
+    // Update user info
+    $("#user-name").text(currentUser.name);
+    $("#user-role").text(currentUser.role_name);
+  }
+
+  function loadPageContent(menuKey) {
+    if (!hasPermission(sidebarMenus[menuKey]?.requiredPermission)) {
+      Swal.fire(
+        "ไม่มีสิทธิ์เข้าถึง",
+        "คุณไม่มีสิทธิ์เข้าถึงหน้านี้",
+        "warning",
+      );
+      return;
+    }
+
+    // Update active menu
+    $("#sidebar-menu a").removeClass("bg-gray-200 font-semibold");
+    $(`#sidebar-menu a[data-menu-key="${menuKey}"]`).addClass(
+      "bg-gray-200 font-semibold",
+    );
+
+    // Hide all pages
+    $(".page-content").addClass("hidden");
+
+    // Show the selected page
+    $(`#${menuKey}`).removeClass("hidden");
+
+    // Load page-specific data
+    switch (menuKey) {
+      case "dashboard-page":
+        loadDashboardData();
+        break;
+      case "manage_students-page":
+        loadStudentsPageData();
+        break;
+      case "manage_orders-page":
+        loadOrdersData();
+        break;
+      case "manage_products-page":
+        loadProductsPageData();
+        break;
+      case "manage_discounts-page":
+        loadDiscountsData();
+        break;
+    }
+
+    // Update current page
+    currentPage = menuKey;
+  }
+
+  function setupResponsiveTable() {
+    const tables = document.querySelectorAll(".responsive-table");
+
+    tables.forEach((table) => {
+      // รับข้อความจากหัวตาราง
+      const headerCells = table.querySelectorAll("thead th");
+      const headerTexts = Array.from(headerCells).map((cell) =>
+        cell.textContent.trim(),
+      );
+
+      // สำหรับแต่ละแถวใน tbody
+      const rows = table.querySelectorAll("tbody tr");
+      rows.forEach((row) => {
+        // สำหรับแต่ละเซลล์ในแถว
+        const cells = row.querySelectorAll("td");
+        cells.forEach((cell, cellIndex) => {
+          // ใช้ข้อความจากหัวตารางตามลำดับ column
+          if (cellIndex < headerTexts.length) {
+            cell.setAttribute("data-label", headerTexts[cellIndex]);
+          }
+        });
+      });
+    });
+  }
+</script>

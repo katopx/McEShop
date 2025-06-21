@@ -1,0 +1,51 @@
+<style>
+    /* Import Google Fonts - Kanit */
+    @import url("https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap");
+
+    * {
+        font-family: "Kanit", sans-serif;
+    }
+
+    /* ทำให้ตารางตอบสนองได้ดีในมือถือ */
+    @media (max-width: 768px) {
+        .responsive-table {
+            display: block;
+        }
+
+        .responsive-table thead {
+            display: none;
+        }
+
+        .responsive-table tbody {
+            display: block;
+        }
+
+        .responsive-table tbody tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9fafb;
+        }
+
+        .responsive-table tbody td {
+            display: flex;
+            justify-content: space-between;
+            text-align: right;
+            padding: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .responsive-table tbody td:last-child {
+            border-bottom: none;
+        }
+
+        .responsive-table tbody td::before {
+            content: attr(data-label);
+            font-weight: 500;
+            text-align: left;
+            color: #374151;
+        }
+    }
+</style>

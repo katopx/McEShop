@@ -1,0 +1,95 @@
+<div id="register-form-container" class="px-4 py-4 sm:py-6">
+    <div class="w-full max-w-2xl p-3 mx-auto bg-white shadow-lg sm:p-6 rounded-xl">
+        <div class="mb-3 sm:mb-4">
+            <button id="back-to-home"
+                class="inline-flex items-center px-2 py-1 mb-2 text-sm text-gray-600 transition-colors rounded sm:mb-3 hover:text-gray-800">
+                <i class="mr-2 fas fa-arrow-left"></i>กลับ
+            </button>
+            <h2 class="text-lg font-semibold text-center text-gray-800 sm:text-xl">ลงทะเบียนใช้งาน</h2>
+            <p class="mt-1 text-xs text-center text-gray-600 sm:mt-2 sm:text-sm">กรอกข้อมูลเพื่อสร้างบัญชีใหม่
+            </p>
+        </div>
+
+        <form id="register-form" class="space-y-3 sm:space-y-4">
+            <!-- แถวที่ 1: คำนำหน้า ชื่อ นามสกุล -->
+            <div class="grid gap-2 sm:gap-3" style="grid-template-columns: 1fr 2fr 2fr;">
+                <div>
+                    <label for="reg-prefix"
+                        class="block mb-1 text-xs font-medium text-gray-700 sm:text-sm">คำนำหน้า</label>
+                    <select id="reg-prefix" name="reg-prefix" required
+                        class="block w-full px-2 py-1.5 text-sm bg-white border border-gray-300 rounded-md shadow-sm sm:px-3 sm:py-2">
+                        <option value="นาย">นาย</option>
+                        <option value="นางสาว">นางสาว</option>
+                        <option value="นาง">นาง</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="reg-firstname"
+                        class="block mb-1 text-xs font-medium text-gray-700 sm:text-sm">ชื่อจริง</label>
+                    <input type="text" id="reg-firstname" name="reg-firstname" required
+                        class="block w-full px-2 py-1.5 text-sm placeholder-gray-400 border border-gray-300 rounded-md shadow-sm sm:px-3 sm:py-2"
+                        placeholder="กรอกชื่อจริง">
+                </div>
+                <div>
+                    <label for="reg-lastname"
+                        class="block mb-1 text-xs font-medium text-gray-700 sm:text-sm">นามสกุล</label>
+                    <input type="text" id="reg-lastname" name="reg-lastname" required
+                        class="block w-full px-2 py-1.5 text-sm placeholder-gray-400 border border-gray-300 rounded-md shadow-sm sm:px-3 sm:py-2"
+                        placeholder="กรอกนามสกุล">
+                </div>
+            </div>
+
+            <!-- แถวที่ 2: ชื่อเล่น กลุ่มเรียน -->
+            <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                <div>
+                    <label for="reg-nickname"
+                        class="block mb-1 text-xs font-medium text-gray-700 sm:text-sm">ชื่อเล่น</label>
+                    <input type="text" id="reg-nickname" name="reg-nickname" required
+                        class="block w-full px-2 py-1.5 text-sm placeholder-gray-400 border border-gray-300 rounded-md shadow-sm sm:px-3 sm:py-2"
+                        placeholder="กรอกชื่อเล่น">
+                </div>
+                <div>
+                    <label for="reg-studygroup"
+                        class="block mb-1 text-xs font-medium text-gray-700 sm:text-sm">กลุ่มเรียน</label>
+                    <select id="reg-studygroup" name="reg-studygroup"
+                        class="block w-full px-2 py-1.5 text-sm bg-white border border-gray-300 rounded-md shadow-sm sm:px-3 sm:py-2">
+                        <option value="" disabled selected>เลือกกลุ่มเรียน</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- แถวที่ 3: เบอร์ติดต่อ อีเมลนักศึกษา -->
+            <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                <div>
+                    <label for="reg-phone"
+                        class="block mb-1 text-xs font-medium text-gray-700 sm:text-sm">เบอร์ติดต่อ</label>
+                    <input type="tel" id="reg-phone" name="reg-phone" pattern="[0-9]{10}" required
+                        class="block w-full px-2 py-1.5 text-sm placeholder-gray-400 border border-gray-300 rounded-md shadow-sm sm:px-3 sm:py-2"
+                        placeholder="08xxxxxxxx">
+                </div>
+                <div>
+                    <label for="reg-email"
+                        class="block mb-1 text-xs font-medium text-gray-700 sm:text-sm">อีเมลนักศึกษา</label>
+                    <input type="email" id="reg-email" name="reg-email" required
+                        class="block w-full px-2 py-1.5 text-sm placeholder-gray-400 border border-gray-300 rounded-md shadow-sm sm:px-3 sm:py-2"
+                        placeholder="student-name@rmutp.ac.th">
+                </div>
+            </div>
+
+            <button type="submit"
+                class="w-full px-4 py-2.5 text-sm font-bold text-white transition duration-150 ease-in-out bg-green-600 rounded-lg hover:bg-green-700 sm:py-3 sm:text-base">
+                <i class="mr-2 fas fa-user-plus"></i>ลงทะเบียน
+            </button>
+        </form>
+
+        <div class="mt-3 text-center sm:mt-4">
+            <p class="text-xs text-gray-600 sm:text-sm">
+                มีบัญชีแล้ว?
+                <button id="switch-to-login"
+                    class="font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:underline">
+                    เข้าสู่ระบบที่นี่
+                </button>
+            </p>
+        </div>
+    </div>
+</div>

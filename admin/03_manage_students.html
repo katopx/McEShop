@@ -1,0 +1,252 @@
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="p-6 bg-white rounded-lg shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800">จัดการนักศึกษา</h2>
+                <p class="mt-2 text-gray-600">
+                    <i class="mr-2 fas fa-users"></i>
+                    ลงทะเบียนแล้วทั้งหมด <span id="student-count" class="font-semibold text-blue-600">-</span>
+                    คน
+                </p>
+            </div>
+            <button id="add-new-student-button"
+                class="px-6 py-3 font-semibold text-white transition duration-200 transform bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:scale-105">
+                <i class="mr-2 fas fa-user-plus"></i>เพิ่มนักศึกษาใหม่
+            </button>
+        </div>
+    </div>
+
+    <!-- จัดการกลุ่มเรียน -->
+    <div class="p-6 bg-white rounded-lg shadow-lg">
+        <h3 class="mb-4 text-xl font-semibold">
+            <i class="mr-2 text-purple-600 fas fa-layer-group"></i>จัดการกลุ่มเรียน
+        </h3>
+        <div class="flex flex-wrap gap-2 mb-4" id="study-groups-list">
+            <!-- กลุ่มเรียนที่มีอยู่จะแสดงที่นี่ -->
+        </div>
+
+        <!-- ฟอร์มเพิ่มกลุ่มเรียนใหม่ -->
+        <div class="space-y-4">
+            <!-- แถวแรก: ปี พ.ศ. และประเภทกลุ่ม -->
+            <div class="flex items-end gap-3">
+                <div class="flex-1">
+                    <label class="block mb-1 text-sm font-medium text-gray-700">ปี พ.ศ. (2 หลักท้าย)</label>
+                    <input type="text" id="year-input"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="67" maxlength="2" pattern="[0-9]{2}">
+                </div>
+                <div class="flex-1">
+                    <label class="block mb-1 text-sm font-medium text-gray-700">ประเภทกลุ่ม</label>
+                    <select id="group-type-select"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <option value="">เลือกประเภท</option>
+                        <option value="ปมค">ปมค.</option>
+                        <option value="ทมค">ทมค.</option>
+                    </select>
+                </div>
+                <div class="flex-1">
+                    <label class="block mb-1 text-sm font-medium text-gray-700">เลขห้อง (2 หลัก)</label>
+                    <input type="text" id="room-input"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="1" maxlength="2">
+                </div>
+            </div>
+
+            <!-- แถวที่สอง: ตัวอย่างและปุ่มเพิ่ม -->
+            <div class="flex items-center gap-3">
+                <div class="flex-1">
+                    <div class="px-4 py-2 text-gray-600 border border-gray-200 rounded-lg bg-gray-50"
+                        id="preview-format">
+                        ตัวอย่าง: 67 - ปมค./1
+                    </div>
+                </div>
+                <button id="add-study-group"
+                    class="px-6 py-2 font-semibold text-white transition duration-200 bg-purple-600 rounded-lg shadow hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                    <i class="mr-1 fas fa-plus"></i> เพิ่มกลุ่ม
+                </button>
+            </div>
+        </div>
+
+        <p class="mt-2 text-xs text-gray-500">
+            <i class="mr-1 fas fa-info-circle"></i>
+            กรอกข้อมูลครบทุกช่อง ระบบจะจัดฟอร์แมตให้อัตโนมัติ
+        </p>
+    </div>
+
+    <!-- ตัวกรองข้อมูล -->
+    <div class="p-6 bg-white rounded-lg shadow-lg">
+        <h3 class="mb-4 text-xl font-semibold">
+            <i class="mr-2 text-green-600 fas fa-filter"></i>ค้นหาและกรองข้อมูล
+        </h3>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+                <label for="filter-student-name"
+                    class="block mb-1 text-sm font-medium text-gray-700">ชื่อนักศึกษา:</label>
+                <input type="text" id="filter-student-name"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="ค้นหาชื่อ/นามสกุล/ชื่อเล่น...">
+            </div>
+            <div>
+                <label for="filter-student-group"
+                    class="block mb-1 text-sm font-medium text-gray-700">กลุ่มเรียน:</label>
+                <select id="filter-student-group"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <option value="">กลุ่มเรียนทั้งหมด</option>
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+            </div>
+            <div>
+                <label for="filter-student-phone" class="block mb-1 text-sm font-medium text-gray-700">เบอร์โทร:</label>
+                <input type="tel" id="filter-student-phone"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="012-345-6789" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
+            </div>
+            <div class="flex items-end">
+                <button id="clear-student-filters"
+                    class="w-full px-4 py-2 font-semibold text-white transition duration-200 bg-gray-500 rounded-lg shadow hover:bg-gray-600">
+                    <i class="mr-1 fas fa-eraser"></i> ล้างตัวกรอง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ตารางนักศึกษา -->
+    <div class="p-6 bg-white rounded-lg shadow-lg">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-semibold">
+                <i class="mr-2 text-blue-600 fas fa-table"></i>รายชื่อนักศึกษา
+            </h3>
+            <div class="flex gap-2">
+                <button id="export-students-csv"
+                    class="px-4 py-2 font-semibold text-white transition duration-200 bg-green-600 rounded-lg shadow hover:bg-green-700">
+                    <i class="mr-1 fas fa-file-csv"></i> Export CSV
+                </button>
+                <button id="print-students-list"
+                    class="px-4 py-2 font-semibold text-white transition duration-200 bg-gray-600 rounded-lg shadow hover:bg-gray-700">
+                    <i class="mr-1 fas fa-print"></i> พิมพ์
+                </button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table id="students-table" class="responsive-table w-full text-sm text-left text-gray-700">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                    <tr>
+                        <th scope="col" class="px-6 py-4 font-semibold">วันที่ลงทะเบียน</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">ชื่อ-นามสกุล</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">ชื่อเล่น</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">กลุ่มเรียน</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">เบอร์ติดต่อ</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">อีเมล</th>
+                        <th scope="col" class="px-6 py-4 font-semibold text-center">การกระทำ</th>
+                    </tr>
+                </thead>
+                <tbody id="students-table-body">
+                    <!-- ข้อมูลจะถูกแทรกที่นี่ด้วย JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="no-students-message" class="hidden py-12 text-center text-gray-500">
+            <i class="mb-4 text-4xl fas fa-user-slash"></i>
+            <p class="text-lg">ไม่พบข้อมูลนักศึกษาตามเงื่อนไข</p>
+        </div>
+
+        <div id="students-pagination" class="flex justify-center mt-6">
+            <!-- Pagination จะถูกสร้างด้วย JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal เพิ่ม/แก้ไขนักศึกษา -->
+<div id="student-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 bg-black bg-opacity-50">
+    <div class="w-full max-w-lg max-h-screen overflow-y-auto bg-white rounded-lg shadow-xl">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="student-modal-title" class="text-xl font-semibold">เพิ่มนักศึกษาใหม่</h3>
+                <button id="close-student-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="text-xl fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="student-form">
+                <input type="hidden" id="student-id" name="id">
+
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div>
+                            <label for="student-prefix" class="block mb-1 text-sm font-medium text-gray-700">คำนำหน้า
+                                *</label>
+                            <select id="student-prefix" name="prefix" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">เลือกคำนำหน้า</option>
+                                <option value="นาย">นาย</option>
+                                <option value="นาง">นาง</option>
+                                <option value="นางสาว">นางสาว</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="student-firstname" class="block mb-1 text-sm font-medium text-gray-700">ชื่อ
+                                *</label>
+                            <input type="text" id="student-firstname" name="firstName" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="สมชาย">
+                        </div>
+                        <div>
+                            <label for="student-lastname" class="block mb-1 text-sm font-medium text-gray-700">นามสกุล
+                                *</label>
+                            <input type="text" id="student-lastname" name="lastName" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="ใจดี">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="student-nickname"
+                            class="block mb-1 text-sm font-medium text-gray-700">ชื่อเล่น</label>
+                        <input type="text" id="student-nickname" name="nickname"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="ชาย">
+                    </div>
+
+                    <div>
+                        <label for="student-phone" class="block mb-1 text-sm font-medium text-gray-700">เบอร์โทรศัพท์
+                            *</label>
+                        <input type="tel" id="student-phone" name="phone" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="012-345-6789" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
+                    </div>
+
+                    <div>
+                        <label for="student-email" class="block mb-1 text-sm font-medium text-gray-700">อีเมล</label>
+                        <input type="email" id="student-email" name="email"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="somchai@email.com">
+                    </div>
+
+                    <div>
+                        <label for="student-study-group" class="block mb-1 text-sm font-medium text-gray-700">กลุ่มเรียน
+                            *</label>
+                        <select id="student-study-group" name="studyGroup" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">เลือกกลุ่มเรียน</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 font-semibold text-white transition duration-200 bg-blue-600 rounded-lg shadow hover:bg-blue-700">
+                        <i class="mr-1 fas fa-save"></i> บันทึก
+                    </button>
+                    <button type="button" id="cancel-student-form"
+                        class="flex-1 px-4 py-2 font-semibold text-white transition duration-200 bg-gray-500 rounded-lg shadow hover:bg-gray-600">
+                        <i class="mr-1 fas fa-times"></i> ยกเลิก
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

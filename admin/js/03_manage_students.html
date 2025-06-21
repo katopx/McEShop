@@ -1,0 +1,1258 @@
+<script>
+  // ===== จัดการนักศึกษา - Variables & Configuration (Updated) =====
+  let currentStudentsPage = 1;
+  let studentsPerPage = 10;
+  let filteredStudents = [];
+
+  function initializeStudentsPage() {
+    currentStudentsPage = 1;
+
+    // ใช้ dynamic page size
+    studentsPerPage = getResponsiveStudentsPageSize();
+    filteredStudents = [...registeredStudents];
+
+    // Setup dynamic pagination
+    setupDynamicStudentsPagination();
+
+    bindStudentsEventHandlers();
+    updateStudyGroupsDisplay();
+    updateStudyGroupsOptions();
+    displayStudentsTable();
+    updateStudentsInfo();
+    updatePreviewFormat();
+  }
+
+  // ===== Event Handlers =====
+  function bindStudentsEventHandlers() {
+    // กรองข้อมูล (Real-time)
+    $("#filter-student-name, #filter-student-phone").on(
+      "input",
+      filterStudents,
+    );
+    $("#filter-student-group").on("change", filterStudents);
+    $("#clear-student-filters").on("click", clearStudentsFilters);
+
+    // จัดการกลุ่มเรียน
+    $("#add-study-group").on("click", addStudyGroup);
+    $(document).on("click", ".remove-study-group", removeStudyGroup);
+    $("#year-input, #group-type-select, #room-input").on(
+      "input change",
+      updatePreviewFormat,
+    );
+
+    // Modal นักศึกษา
+    $("#add-new-student-button").on("click", openAddStudentModal);
+    $("#close-student-modal, #cancel-student-form").on(
+      "click",
+      closeStudentModal,
+    );
+    $("#student-form").off("submit").on("submit", saveStudent);
+
+    // การกระทำในตาราง
+    $(document).on("click", ".edit-student", editStudent);
+    $(document).on("click", ".delete-student", deleteStudent);
+
+    // Export & Print
+    $("#export-students-csv").on("click", exportStudentsCSV);
+    $("#print-students-list").on("click", printStudentsList);
+
+    // Pagination
+    $(document).on("click", ".students-page-btn", function () {
+      const page = parseInt($(this).data("page"));
+      if (!$(this).prop("disabled") && page !== currentStudentsPage) {
+        goToStudentsPage(page);
+      }
+    });
+
+    // ปิด modal เมื่อคลิกพื้นหลัง
+    $("#student-modal").on("click", function (e) {
+      if (e.target === this) closeStudentModal();
+    });
+
+    // Format เบอร์โทรศัพท์
+    $("#student-phone, #filter-student-phone").on("input", function () {
+      const input = this;
+      const rawValue = input.value;
+      const cursorPos = input.selectionStart;
+
+      let numbers = rawValue.replace(/\D/g, "");
+      let formatted;
+
+      if (numbers.length > 6) {
+        numbers = numbers.slice(0, 10);
+        formatted =
+          numbers.slice(0, 3) +
+          "-" +
+          numbers.slice(3, 6) +
+          "-" +
+          numbers.slice(6);
+      } else if (numbers.length > 3) {
+        formatted = numbers.slice(0, 3) + "-" + numbers.slice(3);
+      } else {
+        formatted = numbers;
+      }
+
+      const digitsBeforeCursor = rawValue
+        .slice(0, cursorPos)
+        .replace(/\D/g, "").length;
+      let newCursorPos;
+
+      if (digitsBeforeCursor <= 3) {
+        newCursorPos = digitsBeforeCursor;
+      } else if (digitsBeforeCursor <= 6) {
+        newCursorPos = digitsBeforeCursor + 1;
+      } else {
+        newCursorPos = digitsBeforeCursor + 2;
+      }
+
+      input.value = formatted;
+      input.setSelectionRange(newCursorPos, newCursorPos);
+    });
+  }
+
+  // ===== แสดงตารางนักศึกษา =====
+  function displayStudentsTable() {
+    const startIndex = (currentStudentsPage - 1) * studentsPerPage;
+    const endIndex = startIndex + studentsPerPage;
+    const studentsToShow = filteredStudents.slice(startIndex, endIndex);
+
+    const tbody = $("#students-table-body");
+    tbody.empty();
+
+    if (studentsToShow.length === 0) {
+      $("#students-table").hide();
+      $("#no-students-message").show();
+      $("#students-pagination").hide();
+      return;
+    }
+
+    $("#students-table").show();
+    $("#no-students-message").hide();
+
+    studentsToShow.forEach((student) => {
+      const registrationDate = student.registrationDate
+        ? new Date(student.registrationDate).toLocaleDateString("th-TH")
+        : "N/A";
+
+      const fullName =
+        `${student.prefix || ""} ${student.firstName || ""} ${student.lastName || ""
+          }`.trim() ||
+        student.name ||
+        "N/A";
+
+      tbody.append(`
+        <tr class="transition duration-200 bg-white border-b hover:bg-gray-50">
+          <td class="px-6 py-4">${registrationDate}</td>
+          <td class="px-6 py-4 font-medium">${fullName}</td>
+          <td class="px-6 py-4">${student.nickname || "-"}</td>
+          <td class="px-6 py-4">
+            <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">
+              ${student.studyGroup || "N/A"}
+            </span>
+          </td>
+          <td class="px-6 py-4">${student.phone || "N/A"}</td>
+          <td class="px-6 py-4 text-sm">${student.email || "-"}</td>
+          <td class="px-6 py-4 text-center">
+            <div class="flex justify-center gap-2">
+              <button class="px-3 py-1 text-xs text-white transition duration-200 bg-yellow-500 rounded edit-student hover:bg-yellow-600" 
+                      data-student-id="${student.id || student.studentId
+        }" title="แก้ไข">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="px-3 py-1 text-xs text-white transition duration-200 bg-red-500 rounded delete-student hover:bg-red-600" 
+                      data-student-id="${student.id || student.studentId
+        }" title="ลบ">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `);
+    });
+
+    updateStudentsPagination();
+    setupResponsiveTable();
+  }
+
+  // ===== กรองข้อมูลนักศึกษา =====
+  function filterStudents() {
+    const nameFilter = $("#filter-student-name").val().toLowerCase();
+    const groupFilter = $("#filter-student-group").val();
+    const phoneFilter = $("#filter-student-phone").val();
+
+    filteredStudents = registeredStudents.filter((student) => {
+      const fullName =
+        `${student.prefix || ""} ${student.firstName || ""} ${student.lastName || ""
+          }`.trim() ||
+        student.name ||
+        "";
+      const nickname = student.nickname || "";
+
+      const nameMatch =
+        !nameFilter ||
+        fullName.toLowerCase().includes(nameFilter) ||
+        nickname.toLowerCase().includes(nameFilter);
+
+      const groupMatch = !groupFilter || student.studyGroup === groupFilter;
+      const phoneMatch =
+        !phoneFilter || (student.phone && student.phone.includes(phoneFilter));
+
+      return nameMatch && groupMatch && phoneMatch;
+    });
+
+    currentStudentsPage = 1;
+    displayStudentsTable();
+    updateStudentsInfo();
+  }
+
+  function clearStudentsFilters() {
+    $("#filter-student-name").val("");
+    $("#filter-student-group").val("");
+    $("#filter-student-phone").val("");
+    filterStudents();
+  }
+
+  function updateStudentsInfo() {
+    const totalText =
+      filteredStudents.length !== registeredStudents.length
+        ? `${filteredStudents.length} จาก ${registeredStudents.length}`
+        : `${registeredStudents.length}`;
+
+    $("#student-count").text(totalText);
+  }
+
+  // ===== อัปเดตข้อมูลสรุป =====
+  function updateStudentsInfo() {
+    const totalText =
+      filteredStudents.length !== registeredStudents.length
+        ? `${filteredStudents.length} จาก ${registeredStudents.length}`
+        : `${registeredStudents.length}`;
+
+    $(".text-gray-600 span").text(totalText);
+  }
+
+  // ===== จัดการกลุ่มเรียน =====
+  function updatePreviewFormat() {
+    const year = $("#year-input").val().trim();
+    const type = $("#group-type-select").val();
+    const room = $("#room-input").val().trim();
+
+    if (year && type && room) {
+      const preview = `${year} - ${type}./${room}`;
+      $("#preview-format").text(`ตัวอย่าง: ${preview}`);
+      $("#add-study-group").prop("disabled", false);
+    } else {
+      $("#preview-format").text("ตัวอย่าง: 67 - ปมค./1");
+      $("#add-study-group").prop("disabled", true);
+    }
+  }
+
+  function addStudyGroup() {
+    const year = $("#year-input").val().trim();
+    const type = $("#group-type-select").val();
+    const room = $("#room-input").val().trim();
+
+    // ตรวจสอบปี (ต้องเป็นตัวเลข 2 หลัก)
+    if (!/^\d{2}$/.test(year)) {
+      Swal.fire("ข้อผิดพลาด", "ปี พ.ศ. ต้องเป็นตัวเลข 2 หลัก", "warning");
+      return;
+    }
+
+    // ตรวจสอบประเภทกลุ่ม
+    if (!type) {
+      Swal.fire("ข้อผิดพลาด", "กรุณาเลือกประเภทกลุ่ม", "warning");
+      return;
+    }
+
+    // ตรวจสอบเลขห้อง (ต้องเป็นตัวเลข 1-2 หลัก)
+    if (!/^\d{1,2}$/.test(room)) {
+      Swal.fire("ข้อผิดพลาด", "เลขห้องต้องเป็นตัวเลข 1-2 หลัก", "warning");
+      return;
+    }
+
+    // สร้างชื่อกลุ่มตามฟอร์แมต
+    const newGroupName = `${year} - ${type}./${room}`;
+
+    // ตรวจสอบว่ามีกลุ่มนี้แล้วหรือไม่
+    const existingGroup = studyGroups.find(
+      (sg) => (sg.groupName || sg.name || sg) === newGroupName,
+    );
+
+    if (existingGroup) {
+      Swal.fire("ข้อผิดพลาด", "กลุ่มเรียนนี้มีอยู่แล้ว", "warning");
+      return;
+    }
+
+    showLoading();
+
+    const newGroupData = {
+      groupName: newGroupName,
+    };
+
+    // บันทึกไปยัง Google Sheets
+    google.script.run
+      .withSuccessHandler((newId) => {
+        hideLoading();
+
+        const newGroup = { id: newId, groupName: newGroupName };
+        studyGroups.push(newGroup);
+
+        // ล้างฟอร์ม
+        $("#year-input, #room-input").val("");
+        $("#group-type-select").val("");
+        updatePreviewFormat();
+        updateStudyGroupsDisplay();
+        updateStudyGroupsOptions();
+
+        Swal.fire({
+          title: "สำเร็จ",
+          text: `เพิ่มกลุ่มเรียน "${newGroupName}" แล้ว`,
+          icon: "success",
+          timer: 1500,
+        });
+      })
+      .withFailureHandler(() => {
+        hideLoading();
+        Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถบันทึกกลุ่มเรียนได้", "error");
+      })
+      .createStudyGroup(newGroupData);
+  }
+
+  function removeStudyGroup() {
+    const groupId = $(this).data("group-id");
+    const groupName = $(this).data("group-name");
+
+    // ตรวจสอบว่ามีนักศึกษาใช้กลุ่มนี้อยู่หรือไม่
+    const studentsInGroup = registeredStudents.filter(
+      (s) => s.studyGroup === groupName,
+    );
+
+    if (studentsInGroup.length > 0) {
+      Swal.fire({
+        title: "ไม่สามารถลบได้",
+        text: `มีนักศึกษา ${studentsInGroup.length} คนในกลุ่มนี้ กรุณาย้ายหรือลบนักศึกษาก่อน`,
+        icon: "warning",
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: "ยืนยันการลบ",
+      text: `ต้องการลบกลุ่มเรียน "${groupName}" หรือไม่?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "ลบ",
+      cancelButtonText: "ยกเลิก",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        showLoading();
+
+        google.script.run
+          .withSuccessHandler(() => {
+            hideLoading();
+
+            // อัพเดต UI หลังลบสำเร็จ
+            const index = studyGroups.findIndex((sg) => sg.id === groupId);
+            if (index > -1) studyGroups.splice(index, 1);
+
+            updateStudyGroupsDisplay();
+            updateStudyGroupsOptions();
+
+            Swal.fire("ลบแล้ว", `ลบกลุ่มเรียน "${groupName}" แล้ว`, "success");
+          })
+          .withFailureHandler(() => {
+            hideLoading();
+            Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถลบกลุ่มเรียนได้", "error");
+          })
+          .deleteStudyGroup(groupId); // เรียกฝั่ง GAS แบบใหม่
+      }
+    });
+  }
+
+  function updateStudyGroupsDisplay() {
+    const container = $("#study-groups-list");
+    if (studyGroups.length === 0) {
+      container.html('<p class="italic text-gray-500">ยังไม่มีกลุ่มเรียน</p>');
+      return;
+    }
+
+    container.html(
+      studyGroups
+        .map(
+          (sg) => `
+        <span class="flex items-center px-3 py-1 text-sm font-medium text-purple-800 bg-purple-100 rounded-full study-group-tag">
+            ${sg.groupName || sg.name || sg} 
+            <button class="ml-2 font-bold text-purple-600 remove-study-group hover:text-red-600" 
+                    data-group-id="${sg.id || sg}" 
+                    data-group-name="${sg.groupName || sg.name || sg}" 
+                    title="ลบกลุ่มนี้">
+                <i class="fas fa-times"></i>
+            </button>
+        </span>
+    `,
+        )
+        .join(""),
+    );
+  }
+
+  function updateStudyGroupsOptions() {
+    const selects = $("#filter-student-group, #student-study-group");
+    selects.each(function () {
+      const currentValue = $(this).val();
+      const isFilterSelect = $(this).attr("id") === "filter-student-group";
+
+      $(this).html(`
+            ${isFilterSelect
+          ? '<option value="">กลุ่มเรียนทั้งหมด</option>'
+          : '<option value="">เลือกกลุ่มเรียน</option>'
+        }
+            ${studyGroups
+          .map((sg) => {
+            const groupName = sg.groupName || sg.name || sg;
+            return `<option value="${groupName}">${groupName}</option>`;
+          })
+          .join("")}
+        `);
+
+      if (currentValue) {
+        $(this).val(currentValue);
+      }
+    });
+  }
+
+  // ===== Modal นักศึกษา =====
+  function openAddStudentModal() {
+    $("#student-modal-title").text("เพิ่มนักศึกษาใหม่");
+    $("#student-form")[0].reset();
+    $("#student-id").val("");
+    $("#student-modal").removeClass("hidden");
+    updateStudyGroupsOptions(); // อัพเดท dropdown ก่อนเปิด modal
+  }
+
+  function editStudent() {
+    const studentId = $(this).data("student-id");
+    const student = registeredStudents.find(
+      (s) => s.id === studentId || s.studentId === studentId,
+    );
+
+    if (!student) return;
+
+    $("#student-modal-title").text("แก้ไขข้อมูลนักศึกษา");
+    $("#student-id").val(student.id || student.studentId);
+    $("#student-prefix").val(student.prefix || "");
+    $("#student-firstname").val(student.firstName || "");
+    $("#student-lastname").val(student.lastName || "");
+    $("#student-nickname").val(student.nickname || "");
+    $("#student-phone").val(student.phone || "");
+    $("#student-email").val(student.email || "");
+    $("#student-study-group").val(student.studyGroup || "");
+
+    // สำหรับข้อมูลเก่าที่อาจมี name แทน firstName, lastName
+    if (student.name && !student.firstName && !student.lastName) {
+      const nameParts = student.name.split(" ");
+      if (nameParts.length >= 2) {
+        $("#student-prefix").val(nameParts[0]);
+        $("#student-firstname").val(nameParts[1]);
+        $("#student-lastname").val(nameParts.slice(2).join(" "));
+      }
+    }
+
+    updateStudyGroupsOptions();
+    $("#student-modal").removeClass("hidden");
+  }
+
+  function closeStudentModal() {
+    $("#student-modal").addClass("hidden");
+    $("#student-form")[0].reset();
+  }
+
+  function saveStudent(e) {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const studentData = Object.fromEntries(formData.entries());
+    const isEdit = !!studentData.id;
+
+    // Validation
+    if (!studentData.prefix) {
+      Swal.fire("ข้อผิดพลาด", "กรุณาเลือกคำนำหน้า", "warning");
+      return;
+    }
+
+    if (!studentData.firstName.trim()) {
+      Swal.fire("ข้อผิดพลาด", "กรุณาใส่ชื่อ", "warning");
+      return;
+    }
+
+    if (!studentData.lastName.trim()) {
+      Swal.fire("ข้อผิดพลาด", "กรุณาใส่นามสกุล", "warning");
+      return;
+    }
+
+    if (!studentData.phone.trim()) {
+      Swal.fire("ข้อผิดพลาด", "กรุณาใส่เบอร์โทรศัพท์", "warning");
+      return;
+    }
+
+    if (!studentData.studyGroup) {
+      Swal.fire("ข้อผิดพลาด", "กรุณาเลือกกลุ่มเรียน", "warning");
+      return;
+    }
+
+    // ตรวจสอบเบอร์โทรซ้ำ
+    const existingStudent = registeredStudents.find(
+      (s) =>
+        s.phone === studentData.phone &&
+        (s.id || s.studentId) !== studentData.id,
+    );
+
+    if (existingStudent) {
+      Swal.fire("ข้อผิดพลาด", "เบอร์โทรศัพท์นี้มีอยู่ในระบบแล้ว", "warning");
+      return;
+    }
+
+    showLoading();
+
+    if (isEdit) {
+      google.script.run
+        .withSuccessHandler(() => {
+          const index = registeredStudents.findIndex(
+            (s) => s.id === studentData.id,
+          );
+          if (index !== -1)
+            registeredStudents[index] = {
+              ...registeredStudents[index],
+              ...studentData,
+            };
+          hideLoading();
+          closeStudentModal();
+          filterStudents();
+          updateStudentsInfo();
+          Swal.fire("สำเร็จ", "แก้ไขข้อมูลนักศึกษาแล้ว", "success");
+        })
+        .withFailureHandler((error) => {
+          hideLoading();
+          Swal.fire("ผิดพลาด", error.message || "ไม่สามารถแก้ไขได้", "error");
+        })
+        .updateStudent(studentData);
+    } else {
+      google.script.run
+        .withSuccessHandler((newStudent) => {
+          registeredStudents.push(newStudent);
+          hideLoading();
+          closeStudentModal();
+          filterStudents();
+          updateStudentsInfo();
+          Swal.fire("สำเร็จ", "เพิ่มนักศึกษาใหม่แล้ว", "success");
+        })
+        .withFailureHandler((error) => {
+          hideLoading();
+          Swal.fire("ผิดพลาด", error.message || "ไม่สามารถเพิ่มได้", "error");
+        })
+        .createStudent(studentData);
+    }
+  }
+
+  function deleteStudent() {
+    const studentId = $(this).data("student-id");
+    const student = registeredStudents.find(
+      (s) => (s.id || s.studentId) === studentId,
+    );
+
+    if (!student) return;
+
+    const fullName =
+      `${student.prefix || ""} ${student.firstName || ""} ${student.lastName || ""
+        }`.trim() ||
+      student.name ||
+      "นักศึกษา";
+
+    Swal.fire({
+      title: "ยืนยันการลบ",
+      text: `ต้องการลบนักศึกษา "${fullName}" หรือไม่?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "ลบ",
+      cancelButtonText: "ยกเลิก",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        showLoading();
+
+        google.script.run
+          .withSuccessHandler(() => {
+            // ลบออกจาก array ฝั่ง client ด้วย
+            const index = registeredStudents.findIndex(
+              (s) => (s.id || s.studentId) === studentId,
+            );
+            if (index !== -1) registeredStudents.splice(index, 1);
+
+            hideLoading();
+            filterStudents(); // รีเฟรชตาราง
+            updateStudentsInfo(); // รีเฟรชจำนวน ฯลฯ
+            Swal.fire("ลบแล้ว", "ลบข้อมูลนักศึกษาแล้ว", "success");
+          })
+          .withFailureHandler(() => {
+            hideLoading();
+            Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถลบข้อมูลได้", "error");
+          })
+          .deleteStudent(studentId);
+      }
+    });
+  }
+
+  // ===== Export & Print =====
+  function exportStudentsCSV() {
+    if (filteredStudents.length === 0) {
+      Swal.fire("ไม่มีข้อมูล", "ไม่มีข้อมูลนักศึกษาให้ Export", "info");
+      return;
+    }
+
+    const headers = [
+      "วันที่ลงทะเบียน",
+      "คำนำหน้า",
+      "ชื่อ",
+      "นามสกุล",
+      "ชื่อเล่น",
+      "กลุ่มเรียน",
+      "เบอร์โทรศัพท์",
+      "อีเมล",
+    ];
+    const csvContent = [
+      headers.join(","),
+      ...filteredStudents.map((student) =>
+        [
+          student.registrationDate
+            ? new Date(student.registrationDate).toLocaleDateString("th-TH")
+            : "",
+          `"${student.prefix || ""}"`,
+          `"${student.firstName || ""}"`,
+          `"${student.lastName || ""}"`,
+          `"${student.nickname || ""}"`,
+          `"${student.studyGroup || ""}"`,
+          `"${student.phone || ""}"`,
+          `"${student.email || ""}"`,
+        ].join(","),
+      ),
+    ].join("\n");
+
+    const blob = new Blob(["\ufeff" + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const link = document.createElement("a");
+
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `รายชื่อนักศึกษา_${new Date().toLocaleDateString("th-TH")}.csv`,
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
+
+  function printStudentsList() {
+    if (filteredStudents.length === 0) {
+      Swal.fire("ไม่มีข้อมูล", "ไม่มีข้อมูลนักศึกษาให้พิมพ์", "info");
+      return;
+    }
+
+    const printWindow = window.open("", "_blank");
+    const tableRows = filteredStudents
+      .map((student, index) => {
+        const fullName =
+          `${student.prefix || ""} ${student.firstName || ""} ${student.lastName || ""
+            }`.trim() ||
+          student.name ||
+          "N/A";
+        return `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${student.registrationDate
+            ? new Date(student.registrationDate).toLocaleDateString(
+              "th-TH",
+            )
+            : "N/A"
+          }</td>
+                <td>${fullName}</td>
+                <td>${student.nickname || "-"}</td>
+                <td>${student.studyGroup || "N/A"}</td>
+                <td>${student.phone || "N/A"}</td>
+                <td>${student.email || "-"}</td>
+            </tr>
+        `;
+      })
+      .join("");
+
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>รายชื่อนักศึกษา</title>
+            <style>
+                body { font-family: 'Sarabun', sans-serif; margin: 20px; }
+                h1 { text-align: center; color: #333; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+                th { background-color: #f2f2f2; font-weight: bold; }
+                tr:nth-child(even) { background-color: #f9f9f9; }
+                .print-date { text-align: right; margin-bottom: 20px; color: #666; }
+            </style>
+        </head>
+        <body>
+            <h1>รายชื่อนักศึกษาที่ลงทะเบียน</h1>
+            <div class="print-date">วันที่พิมพ์: ${new Date().toLocaleDateString(
+      "th-TH",
+    )}</div>
+            <p>จำนวนนักศึกษาทั้งหมด: ${filteredStudents.length} คน</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ลำดับ</th>
+                        <th>วันที่ลงทะเบียน</th>
+                        <th>ชื่อ-นามสกุล</th>
+                        <th>ชื่อเล่น</th>
+                        <th>กลุ่มเรียน</th>
+                        <th>เบอร์โทรศัพท์</th>
+                        <th>อีเมล</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRows}
+                </tbody>
+            </table>
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  }
+
+  // ===== Responsive Functions =====
+  function getResponsiveStudentsPageSize() {
+    const width = window.innerWidth;
+    const savedPageSize = getSavedStudentsPageSize();
+
+    // ถ้ามี saved preference และหน้าจอใหญ่พอ ให้ใช้ค่าที่บันทึกไว้
+    if (savedPageSize && width >= 1024) {
+      return Math.max(savedPageSize, 5);
+    }
+
+    // คำนวณตามขนาดหน้าจอ
+    if (width < 480) return 5;
+    else if (width < 768) return 10;
+    else if (width < 1024) return 15;
+    else return 25;
+  }
+
+  function getSavedStudentsPageSize() {
+    try {
+      const saved = localStorage.getItem("studentsPerPage");
+      return saved ? parseInt(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setupDynamicStudentsPagination() {
+    let resizeTimeout;
+
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const newPageSize = getResponsiveStudentsPageSize();
+        if (newPageSize !== studentsPerPage) {
+          const currentFirstItem = (currentStudentsPage - 1) * studentsPerPage;
+          studentsPerPage = newPageSize;
+          currentStudentsPage = Math.max(
+            1,
+            Math.floor(currentFirstItem / studentsPerPage) + 1,
+          );
+
+          updateStudentsPageSizeSelector();
+          displayStudentsTable();
+          updateStudentsPagination();
+          showStudentsPageSizeChangeNotification(newPageSize);
+        } else {
+          updateStudentsPagination();
+        }
+      }, 250);
+    };
+
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", () => {
+      setTimeout(handleResize, 500);
+    });
+  }
+
+  function showStudentsPageSizeChangeNotification(newSize) {
+    const notification = document.createElement("div");
+    notification.className =
+      "fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out translate-x-full z-50";
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <i class="fas fa-info-circle"></i>
+        <span>ปรับจำนวนรายการเป็น ${newSize} รายการต่อหน้า</span>
+      </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => notification.classList.remove("translate-x-full"), 100);
+    setTimeout(() => {
+      notification.classList.add("translate-x-full");
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }, 2000);
+  }
+
+  function updateStudentsPageSizeSelector() {
+    const selector = document.getElementById("students-per-page");
+    if (selector) {
+      selector.value = studentsPerPage;
+    }
+  }
+
+  // ===== Pagination Functions =====
+  function updateStudentsPagination() {
+    const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
+    const pagination = $("#students-pagination");
+    pagination.empty();
+
+    if (totalPages <= 1) {
+      addDynamicStudentsPageSizeSelector();
+      return;
+    }
+
+    const paginationHtml = generateStudentsPagination(currentStudentsPage, totalPages,);
+    pagination.html(paginationHtml);
+
+    addDynamicStudentsPageSizeSelector();
+    bindStudentsPaginationEvents();
+  }
+
+  function generateStudentsPagination(currentPage, totalPages) {
+    const width = window.innerWidth;
+    const isMobile = width < 768;
+
+    if (isMobile) {
+      return generateMobileStudentsPagination(currentPage, totalPages);
+    } else {
+      return generateDesktopStudentsPagination(currentPage, totalPages);
+    }
+  }
+
+  function generateDesktopStudentsPagination(currentPage, totalPages) {
+    let html =
+      '<div class="flex flex-wrap items-center justify-between gap-4">';
+
+    html += '<div class="flex items-center gap-1">';
+
+    if (currentPage > 1) {
+      html += `
+        <button class="flex-shrink-0 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg students-page-btn hover:bg-gray-50 transition-colors" 
+                data-page="1" title="หน้าแรก">
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button class="flex-shrink-0 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg students-page-btn hover:bg-gray-50 transition-colors" 
+                data-page="${currentPage - 1}" title="หน้าก่อน">
+          <i class="fas fa-angle-left"></i>
+        </button>
+      `;
+    }
+
+    const pageRange = calculateStudentsPageRange(currentPage, totalPages);
+    pageRange.forEach((item) => {
+      if (item === "...") {
+        html += `<span class="flex-shrink-0 px-3 py-2 text-sm text-gray-500">...</span>`;
+      } else if (item === currentPage) {
+        html += `
+          <button class="flex-shrink-0 px-3 py-2 text-sm text-white bg-blue-600 border border-blue-600 rounded-lg font-semibold shadow-sm">
+            ${item}
+          </button>
+        `;
+      } else {
+        html += `
+          <button class="flex-shrink-0 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg students-page-btn hover:bg-gray-50 transition-colors" 
+                  data-page="${item}">
+            ${item}
+          </button>
+        `;
+      }
+    });
+
+    if (currentPage < totalPages) {
+      html += `
+        <button class="flex-shrink-0 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg students-page-btn hover:bg-gray-50 transition-colors" 
+                data-page="${currentPage + 1}" title="หน้าถัดไป">
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button class="flex-shrink-0 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg students-page-btn hover:bg-gray-50 transition-colors" 
+                data-page="${totalPages}" title="หน้าสุดท้าย">
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+      `;
+    }
+
+    html += "</div>";
+
+    const startItem = (currentPage - 1) * studentsPerPage + 1;
+    const endItem = Math.min(
+      currentPage * studentsPerPage,
+      filteredStudents.length,
+    );
+
+    html += `
+      <div class="flex-shrink-0 text-sm text-gray-600 hidden sm:block">
+        แสดง ${startItem.toLocaleString()}-${endItem.toLocaleString()} 
+        จาก ${filteredStudents.length.toLocaleString()} รายการ
+      </div>
+    `;
+
+    if (totalPages > 10) {
+      html += `
+        <div class="flex-shrink-0 flex items-center gap-2">
+          <span class="text-sm text-gray-600 whitespace-nowrap">ไปหน้า:</span>
+          <input type="number" id="jump-to-page" min="1" max="${totalPages}" 
+                 class="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 placeholder="${currentPage}">
+          <button id="go-to-page-btn" 
+                  class="px-3 py-1 text-sm text-white bg-blue-600 rounded hover:bg-blue-700">
+            ไป
+          </button>
+        </div>
+      `;
+    }
+
+    html += "</div>";
+    return html;
+  }
+
+  function generateMobileStudentsPagination(currentPage, totalPages) {
+    let html = '<div class="flex flex-col gap-3">';
+
+    html += '<div class="flex items-center justify-between">';
+
+    html += `
+      <button class="flex items-center gap-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg students-page-btn hover:bg-gray-50 ${currentPage <= 1 ? "opacity-50 cursor-not-allowed" : ""
+      }" 
+              data-page="${currentPage - 1}" ${currentPage <= 1 ? "disabled" : ""
+      }>
+        <i class="fas fa-chevron-left text-xs"></i>
+        <span>ก่อนหน้า</span>
+      </button>
+    `;
+
+    html += `
+      <div class="flex items-center gap-2">
+        <input type="number" id="mobile-page-input" value="${currentPage}" min="1" max="${totalPages}"
+               class="w-12 px-1 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <span class="text-sm text-gray-600 whitespace-nowrap">/ ${totalPages}</span>
+      </div>
+    `;
+
+    html += `
+      <button class="flex items-center gap-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg students-page-btn hover:bg-gray-50 ${currentPage >= totalPages ? "opacity-50 cursor-not-allowed" : ""
+      }" 
+              data-page="${currentPage + 1}" ${currentPage >= totalPages ? "disabled" : ""
+      }>
+        <span>ถัดไป</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+      </button>
+    `;
+
+    html += "</div>";
+
+    const startItem = (currentPage - 1) * studentsPerPage + 1;
+    const endItem = Math.min(
+      currentPage * studentsPerPage,
+      filteredStudents.length,
+    );
+
+    html += `
+      <div class="text-center text-sm text-gray-600">
+        ${startItem}-${endItem} จาก ${filteredStudents.length} รายการ
+      </div>
+    `;
+
+    html += "</div>";
+    return html;
+  }
+
+  function calculateStudentsPageRange(currentPage, totalPages) {
+    const maxVisible = window.innerWidth >= 1024 ? 9 : 7;
+
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const range = [];
+    const delta = Math.floor((maxVisible - 3) / 2);
+
+    range.push(1);
+
+    let startPage = Math.max(2, currentPage - delta);
+    let endPage = Math.min(totalPages - 1, currentPage + delta);
+
+    if (currentPage <= delta + 2) {
+      endPage = Math.min(totalPages - 1, maxVisible - 2);
+    }
+
+    if (currentPage >= totalPages - delta - 1) {
+      startPage = Math.max(2, totalPages - maxVisible + 3);
+    }
+
+    if (startPage > 2) range.push("...");
+
+    for (let i = startPage; i <= endPage; i++) {
+      range.push(i);
+    }
+
+    if (endPage < totalPages - 1) range.push("...");
+
+    if (totalPages > 1) range.push(totalPages);
+
+    return range;
+  }
+
+  function addDynamicStudentsPageSizeSelector() {
+    const container = document.getElementById("students-pagination");
+    if (!container) return;
+
+    const existingSelector = document.getElementById("page-size-container");
+    if (existingSelector) existingSelector.remove();
+
+    const isMobile = window.innerWidth < 768;
+
+    let pageSizeSelector;
+    if (isMobile) {
+      pageSizeSelector = `
+        <div id="page-size-container" class="flex items-center justify-center gap-2 mb-4 p-2 bg-gray-50 rounded-lg">
+          <span class="text-sm text-gray-600">แสดง:</span>
+          <select id="students-per-page" 
+                  class="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="5" ${studentsPerPage === 5 ? "selected" : ""
+        }>5</option>
+            <option value="10" ${studentsPerPage === 10 ? "selected" : ""
+        }>10</option>
+            <option value="15" ${studentsPerPage === 15 ? "selected" : ""
+        }>15</option>
+            <option value="25" ${studentsPerPage === 25 ? "selected" : ""
+        }>25</option>
+          </select>
+          <span class="text-sm text-gray-600">รายการ</span>
+        </div>
+      `;
+    } else {
+      pageSizeSelector = `
+        <div id="page-size-container" class="flex flex-wrap items-center justify-between gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-600">แสดง:</span>
+            <select id="students-per-page" 
+                    class="px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="5" ${studentsPerPage === 5 ? "selected" : ""
+        }>5 รายการ</option>
+              <option value="10" ${studentsPerPage === 10 ? "selected" : ""
+        }>10 รายการ</option>
+              <option value="15" ${studentsPerPage === 15 ? "selected" : ""
+        }>15 รายการ</option>
+              <option value="25" ${studentsPerPage === 25 ? "selected" : ""
+        }>25 รายการ</option>
+              <option value="50" ${studentsPerPage === 50 ? "selected" : ""
+        }>50 รายการ</option>
+              <option value="100" ${studentsPerPage === 100 ? "selected" : ""
+        }>100 รายการ</option>
+            </select>
+            <span class="text-sm text-gray-600">ต่อหน้า</span>
+          </div>
+          
+          <div class="flex items-center gap-4 text-sm text-gray-500">
+            <div class="hidden lg:flex items-center gap-2">
+              <i class="fas fa-keyboard text-xs"></i>
+              <span>ใช้ปุ่ม ← → เพื่อเปลี่ยนหน้า</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <i class="fas fa-mobile-alt text-xs"></i>
+              <span>ปรับอัตโนมัติตามหน้าจอ</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    container.insertAdjacentHTML("beforebegin", pageSizeSelector);
+
+    $("#students-per-page")
+      .off("change")
+      .on("change", function () {
+        const newPageSize = parseInt($(this).val());
+        changeStudentsPerPage(newPageSize, true);
+      });
+  }
+
+  function bindStudentsPaginationEvents() {
+    $(".students-page-btn")
+      .off("click")
+      .on("click", function () {
+        const page = parseInt($(this).data("page"));
+        if (!$(this).prop("disabled") && page !== currentStudentsPage) {
+          goToStudentsPage(page);
+        }
+      });
+
+    $("#go-to-page-btn")
+      .off("click")
+      .on("click", function () {
+        const jumpPage = parseInt($("#jump-to-page").val());
+        const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
+
+        if (
+          jumpPage >= 1 &&
+          jumpPage <= totalPages &&
+          jumpPage !== currentStudentsPage
+        ) {
+          goToStudentsPage(jumpPage);
+        } else if (jumpPage < 1 || jumpPage > totalPages) {
+          Swal.fire(
+            "ข้อผิดพลาด",
+            `กรุณาใส่หมายเลขหน้าระหว่าง 1-${totalPages}`,
+            "warning",
+          );
+        }
+      });
+
+    $("#jump-to-page")
+      .off("keypress")
+      .on("keypress", function (e) {
+        if (e.which === 13) $("#go-to-page-btn").click();
+      });
+
+    $("#mobile-page-input")
+      .off("change blur keypress")
+      .on("change blur", function () {
+        const jumpPage = parseInt($(this).val());
+        const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
+
+        if (
+          jumpPage >= 1 &&
+          jumpPage <= totalPages &&
+          jumpPage !== currentStudentsPage
+        ) {
+          goToStudentsPage(jumpPage);
+        } else if (jumpPage < 1 || jumpPage > totalPages) {
+          $(this).val(currentStudentsPage);
+          Swal.fire(
+            "ข้อผิดพลาด",
+            `กรุณาใส่หมายเลขหน้าระหว่าง 1-${totalPages}`,
+            "warning",
+          );
+        }
+      })
+      .on("keypress", function (e) {
+        if (e.which === 13) $(this).trigger("change");
+      });
+  }
+
+  function changeStudentsPerPage(newPageSize, userInitiated = false) {
+    const currentFirstItem = (currentStudentsPage - 1) * studentsPerPage;
+
+    studentsPerPage = newPageSize;
+    currentStudentsPage = Math.max(
+      1,
+      Math.floor(currentFirstItem / studentsPerPage) + 1,
+    );
+
+    if (userInitiated) {
+      try {
+        localStorage.setItem("studentsPerPage", studentsPerPage.toString());
+      } catch (e) {
+        console.warn("Cannot save page size");
+      }
+    }
+
+    displayStudentsTable();
+    updateStudentsPagination();
+
+    if (userInitiated) {
+      const table = document.getElementById("students-table");
+      if (table) {
+        table.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  }
+
+  function goToStudentsPage(page) {
+    const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
+    if (page < 1 || page > totalPages) return;
+
+    currentStudentsPage = page;
+
+    const table = document.getElementById("students-table");
+    if (table) {
+      table.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    displayStudentsTable();
+    updateStudentsPagination();
+  }
+
+  // ===== Keyboard Navigation =====
+  function setupStudentsKeyboardNavigation() {
+    document.addEventListener("keydown", function (e) {
+      if (
+        document.activeElement.tagName === "INPUT" ||
+        document.activeElement.tagName === "TEXTAREA" ||
+        document.activeElement.tagName === "SELECT"
+      ) {
+        return;
+      }
+
+      const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
+
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault();
+          if (currentStudentsPage > 1) {
+            goToStudentsPage(currentStudentsPage - 1);
+          }
+          break;
+
+        case "ArrowRight":
+          e.preventDefault();
+          if (currentStudentsPage < totalPages) {
+            goToStudentsPage(currentStudentsPage + 1);
+          }
+          break;
+
+        case "Home":
+          e.preventDefault();
+          if (currentStudentsPage > 1) {
+            goToStudentsPage(1);
+          }
+          break;
+
+        case "End":
+          e.preventDefault();
+          if (currentStudentsPage < totalPages) {
+            goToStudentsPage(totalPages);
+          }
+          break;
+      }
+    });
+  }
+  // เรียกใช้ keyboard navigation เมื่อเริ่มต้น
+  $(document).ready(function () {
+    setupStudentsKeyboardNavigation();
+  });
+</script>

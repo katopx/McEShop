@@ -1,0 +1,258 @@
+<div class="space-y-6">
+  <!-- Header Section -->
+  <div class="p-6 bg-white rounded-lg shadow-lg">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-3xl font-bold text-gray-800">จัดการสินค้า</h2>
+        <p class="mt-2 text-gray-600">
+          <i class="mr-2 fas fa-boxes-stacked"></i>
+          มีสินค้าในระบบทั้งหมด
+          <span id="product-count" class="font-semibold text-blue-600">-</span>
+          รายการ
+        </p>
+      </div>
+      <button id="add-new-product-button"
+        class="px-6 py-3 font-semibold text-white transition duration-200 transform bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:scale-105">
+        <i class="mr-2 fas fa-plus"></i>เพิ่มสินค้าใหม่
+      </button>
+    </div>
+  </div>
+  <!-- สถิติสินค้า -->
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+    <div class="p-6 text-center bg-white rounded-lg shadow-lg">
+      <div class="text-3xl font-bold text-blue-600" id="total-products">-</div>
+      <div class="text-sm text-gray-600">สินค้าทั้งหมด</div>
+    </div>
+    <div class="p-6 text-center bg-white rounded-lg shadow-lg">
+      <div class="text-3xl font-bold text-green-600" id="available-products">
+        -
+      </div>
+      <div class="text-sm text-gray-600">เปิดขาย</div>
+    </div>
+    <div class="p-6 text-center bg-white rounded-lg shadow-lg">
+      <div class="text-3xl font-bold text-red-600" id="unavailable-products">
+        -
+      </div>
+      <div class="text-sm text-gray-600">ปิดขาย</div>
+    </div>
+    <div class="p-6 text-center bg-white rounded-lg shadow-lg">
+      <div class="text-3xl font-bold text-purple-600" id="low-stock-products">
+        -
+      </div>
+      <div class="text-sm text-gray-600">สต็อกต่ำ (≤5)</div>
+    </div>
+  </div>
+
+  <!-- ตัวกรองข้อมูล -->
+  <div class="p-6 bg-white rounded-lg shadow-lg">
+    <h3 class="mb-4 text-xl font-semibold">
+      <i class="mr-2 text-green-600 fas fa-filter"></i>ค้นหาและกรองข้อมูล
+    </h3>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div>
+        <label for="filter-product-name" class="block mb-1 text-sm font-medium text-gray-700">ชื่อสินค้า:</label>
+        <input type="text" id="filter-product-name"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          placeholder="ค้นหาชื่อสินค้า..." />
+      </div>
+      <div>
+        <label for="filter-product-status" class="block mb-1 text-sm font-medium text-gray-700">สถานะการขาย:</label>
+        <select id="filter-product-status"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="">สถานะทั้งหมด</option>
+          <option value="true">เปิดขาย</option>
+          <option value="false">ปิดขาย</option>
+        </select>
+      </div>
+      <div>
+        <label for="filter-product-price" class="block mb-1 text-sm font-medium text-gray-700">ช่วงราคา:</label>
+        <select id="filter-product-price"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="">ราคาทั้งหมด</option>
+          <option value="0-100">0 - 100 บาท</option>
+          <option value="101-500">101 - 500 บาท</option>
+          <option value="501-1000">501 - 1,000 บาท</option>
+          <option value="1001+">1,001 บาท ขึ้นไป</option>
+        </select>
+      </div>
+      <div class="flex items-end">
+        <button id="clear-product-filters"
+          class="w-full px-4 py-2 font-semibold text-white transition duration-200 bg-gray-500 rounded-lg shadow hover:bg-gray-600">
+          <i class="mr-1 fas fa-eraser"></i> ล้างตัวกรอง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ตารางสินค้า -->
+  <div class="p-6 bg-white rounded-lg shadow-lg">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xl font-semibold">
+        <i class="mr-2 text-blue-600 fas fa-table"></i>รายการสินค้า
+      </h3>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table id="products-table" class="responsive-table w-full text-sm text-left text-gray-700">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+          <tr>
+            <th scope="col" class="px-6 py-4 font-semibold">รูปภาพ</th>
+            <th scope="col" class="px-6 py-4 font-semibold">ชื่อสินค้า</th>
+            <th scope="col" class="px-6 py-4 font-semibold">ราคาเริ่มต้น</th>
+            <th scope="col" class="px-6 py-4 font-semibold">สต็อก</th>
+            <th scope="col" class="px-6 py-4 font-semibold">สถานะ</th>
+            <th scope="col" class="px-6 py-4 font-semibold">ตัวเลือก</th>
+            <th scope="col" class="px-6 py-4 font-semibold text-center">
+              การกระทำ
+            </th>
+          </tr>
+        </thead>
+        <tbody id="products-table-body">
+          <!-- ข้อมูลจะถูกแทรกที่นี่ด้วย JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <div id="no-products-message" class="hidden py-12 text-center text-gray-500">
+      <i class="mb-4 text-4xl fas fa-box-open"></i>
+      <p class="text-lg">ไม่พบสินค้าตามเงื่อนไข</p>
+    </div>
+
+    <div id="products-pagination" class="flex justify-center mt-6">
+      <!-- Pagination จะถูกสร้างด้วย JavaScript -->
+    </div>
+  </div>
+</div>
+
+<!-- Modal เพิ่ม/แก้ไขสินค้า -->
+<div id="product-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 bg-black bg-opacity-50">
+  <div class="w-full max-w-4xl max-h-[90vh] my-10 overflow-y-auto bg-white rounded-lg shadow-xl">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="product-modal-title" class="text-xl font-semibold">
+          เพิ่มสินค้าใหม่
+        </h3>
+        <button id="close-product-modal" class="text-gray-400 hover:text-gray-600">
+          <i class="text-xl fas fa-times"></i>
+        </button>
+      </div>
+
+      <form id="product-form">
+        <input type="hidden" id="product-id" name="id" />
+
+        <!-- ข้อมูลพื้นฐาน -->
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label for="product-name" class="block mb-1 text-sm font-medium text-gray-700">ชื่อสินค้า *</label>
+              <input type="text" id="product-name" name="name" required
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="เสื้อยืด Cotton 100%" />
+            </div>
+            <div>
+              <label for="product-base-price" class="block mb-1 text-sm font-medium text-gray-700">ราคาเริ่มต้น (บาท)
+                *</label>
+              <input type="number" id="product-base-price" name="basePrice" required step="0.01" min="0"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="299.00" />
+            </div>
+          </div>
+
+          <div>
+            <label for="product-name-sku" class="block mb-1 text-sm font-medium text-gray-700">กำหนดชื่อรหัสสินค้า
+              *</label>
+            <input type="text" id="product-name-sku" name="name-sku" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="SHIRT"></input>
+          </div>
+
+          <div>
+            <label for="product-description"
+              class="block mb-1 text-sm font-medium text-gray-700">รายละเอียดสินค้า</label>
+            <textarea id="product-description" name="description" rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="รายละเอียดของสินค้า..."></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label for="product-stock" class="block mb-1 text-sm font-medium text-gray-700">สต็อก
+                (หากไม่มีตัวเลือก)</label>
+              <input type="number" id="product-stock" name="stock" min="0"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="100" />
+            </div>
+            <div>
+              <label for="product-max-quantity"
+                class="block mb-1 text-sm font-medium text-gray-700">จำนวนสั่งซื้อสูงสุด</label>
+              <input type="number" id="product-max-quantity" name="maxQuantity" min="1" value="50"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block mb-1 text-sm font-medium text-gray-700">รูปภาพสินค้า</label>
+            <input type="text" id="product-images" name="images"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="URL รูปภาพ คั่นด้วยลูกน้ำ" />
+            <div id="product-image-previews" class="flex flex-wrap gap-2 mt-2"></div>
+            <p class="mt-1 text-xs text-gray-500">
+              แนะนำ: ใช้ URL จาก Google Drive หรือ Cloud Storage
+            </p>
+          </div>
+
+          <div class="flex items-center">
+            <input type="checkbox" id="product-is-available" name="isAvailable" checked
+              class="text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+            <label for="product-is-available" class="ml-2 text-sm text-gray-700">เปิดขายสินค้านี้</label>
+          </div>
+        </div>
+
+        <!-- ตัวเลือกสินค้า -->
+        <div class="pt-4 mt-6 border-t">
+          <h4 class="mb-2 text-lg font-semibold">
+            <i class="mr-2 text-purple-600 fas fa-cogs"></i>ตัวเลือกสินค้า (สี,
+            ไซส์, ฯลฯ)
+          </h4>
+          <p class="mb-4 text-sm text-gray-600">
+            หากสินค้ามีหลายตัวเลือก เช่น สี หรือไซส์ สามารถเพิ่มได้ที่นี่
+          </p>
+
+          <div id="product-options-container" class="space-y-3">
+            <!-- ตัวเลือกจะถูกเพิ่มที่นี่ -->
+          </div>
+
+          <button type="button" id="add-product-option" class="mt-2 font-medium text-blue-600 hover:text-blue-800">
+            <i class="mr-1 fas fa-plus"></i>เพิ่มตัวเลือก
+          </button>
+        </div>
+
+        <!-- ตัวแปรสินค้า -->
+        <div id="product-variants-section" class="hidden pt-4 mt-6 border-t">
+          <h4 class="mb-2 text-lg font-semibold">
+            <i class="mr-2 text-orange-600 fas fa-layer-group"></i>ตัวแปรสินค้า
+          </h4>
+          <button type="button" id="generate-variants-btn"
+            class="px-4 py-2 mb-4 text-white transition duration-200 bg-orange-600 rounded-lg hover:bg-orange-700">
+            <i class="mr-1 fas fa-magic"></i>สร้างตัวแปรอัตโนมัติ
+          </button>
+          <div id="product-variants-container" class="space-y-3">
+            <!-- ตัวแปรจะถูกเพิ่มที่นี่ -->
+          </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+          <button type="submit"
+            class="flex-1 px-4 py-2 font-semibold text-white transition duration-200 bg-blue-600 rounded-lg shadow hover:bg-blue-700">
+            <i class="mr-1 fas fa-save"></i> บันทึก
+          </button>
+          <button type="button" id="cancel-product-form"
+            class="flex-1 px-4 py-2 font-semibold text-white transition duration-200 bg-gray-500 rounded-lg shadow hover:bg-gray-600">
+            <i class="mr-1 fas fa-times"></i> ยกเลิก
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

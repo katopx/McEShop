@@ -1,0 +1,56 @@
+<script>
+  // ===== Main Application =====
+  $(document).ready(function () {
+    // Check existing login on page load
+    checkExistingLogin();
+
+    // Bind login form submission
+    $("#loginForm").on("submit", function (e) {
+      e.preventDefault();
+      handleLogin();
+    });
+
+    // Allow Enter key to submit login form
+    $("#username, #password").on("keypress", function (e) {
+      if (e.which === 13) {
+        handleLogin();
+      }
+    });
+
+    // Initialize any other components or event listeners here
+    console.log("Admin Panel initialized successfully");
+  });
+
+  // Global error handler
+  window.addEventListener("error", function (e) {
+    console.error("Global error:", e.error);
+    hideLoading();
+
+    // Don't show error for minor issues
+    if (
+      e.error &&
+      e.error.message &&
+      !e.error.message.includes("ResizeObserver")
+    ) {
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด",
+        text: "มีปัญหาเกิดขึ้นในระบบ กรุณาลองใหม่อีกครั้ง",
+        icon: "error",
+        confirmButtonText: "ตกลง",
+      });
+    }
+  });
+
+  // Handle Google Apps Script errors
+  function onGoogleScriptError(error) {
+    hideLoading();
+    console.error("Google Script Error:", error);
+
+    Swal.fire({
+      title: "เกิดข้อผิดพลาดในการเชื่อมต่อ",
+      text: "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง",
+      icon: "error",
+      confirmButtonText: "ตกลง",
+    });
+  }
+</script>

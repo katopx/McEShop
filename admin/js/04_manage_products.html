@@ -1,0 +1,1093 @@
+<script>
+  // ===== จัดการสินค้า - Variables & Configuration =====
+  let currentProductsPage = 1;
+  let productsPerPage = 10;
+  let filteredProducts = [];
+
+  function initializeProductsPage() {
+    currentProductsPage = 1;
+
+    // ใช้ dynamic page size
+    productsPerPage = getResponsiveProductsPageSize();
+    filteredProducts = [...siteProducts];
+
+    // Setup dynamic pagination
+    setupDynamicProductsPagination();
+
+    bindProductsEventHandlers();
+    displayProductsTable();
+    updateProductsInfo();
+  }
+
+  // ===== Event Handlers =====
+  function bindProductsEventHandlers() {
+    // กรองข้อมูล (Real-time)
+    $("#filter-product-name").on("input", filterProducts);
+    $("#filter-product-status, #filter-product-price").on("change", filterProducts);
+    $("#clear-product-filters").on("click", clearProductsFilters);
+
+    // Modal สินค้า
+    $("#add-new-product-button").on("click", openAddProductModal);
+    $("#close-product-modal, #cancel-product-form").on("click", closeProductModal);
+    $("#product-form").off("submit").on("submit", saveProduct);
+
+    // การกระทำในตาราง
+    $(document).on("click", ".edit-product", editProduct);
+    $(document).on("click", ".delete-product", deleteProduct);
+    $(document).on("click", ".toggle-product-status", toggleProductStatus);
+
+    // จัดการตัวเลือกสินค้า
+    $("#add-product-option").on("click", addProductOption);
+    $(document).on("click", ".remove-option-btn", removeProductOption);
+    $("#generate-variants-btn").on("click", generateProductVariants);
+    $(document).on("click", ".remove-variant-btn", removeProductVariant);
+
+    // รูปภาพ
+    $("#product-images").on("input", updateImagePreviews);
+
+    // ปิด modal เมื่อคลิกพื้นหลัง
+    $("#product-modal").on("click", function (e) {
+      if (e.target === this) closeProductModal();
+    });
+
+    // Pagination
+    $(document).on("click", ".products-page-btn", function () {
+      const page = parseInt($(this).data("page"));
+      if (!$(this).prop("disabled") && page !== currentProductsPage) {
+        goToProductsPage(page);
+      }
+    });
+  }
+
+  // ===== Utility Functions =====
+  function formatPrice(price) {
+    return parseFloat(price || 0).toLocaleString('th-TH', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  function getTotalStock(product) {
+    if (product.variants && product.variants.length > 0) {
+      return product.variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+    }
+    return parseInt(product.stock) || 0;
+  }
+
+  // ===== Filter Functions =====
+
+  function filterProducts() {
+    const nameFilter = $("#filter-product-name").val().toLowerCase();
+    const statusFilter = $("#filter-product-status").val();
+    const priceFilter = $("#filter-product-price").val();
+
+    filteredProducts = siteProducts.filter((product) => {
+      const nameMatch = !nameFilter || (product.name && product.name.toLowerCase().includes(nameFilter));
+
+      let statusMatch = true;
+      if (statusFilter !== "") {
+        statusMatch = product.isAvailable === (statusFilter === "true");
+      }
+
+      let priceMatch = true;
+      if (priceFilter) {
+        const price = parseFloat(product.basePrice) || 0;
+        switch (priceFilter) {
+          case "0-100":
+            priceMatch = price >= 0 && price <= 100;
+            break;
+          case "101-500":
+            priceMatch = price >= 101 && price <= 500;
+            break;
+          case "501-1000":
+            priceMatch = price >= 501 && price <= 1000;
+            break;
+          case "1001+":
+            priceMatch = price >= 1001;
+            break;
+        }
+      }
+
+      return nameMatch && statusMatch && priceMatch;
+    });
+
+    currentProductsPage = 1;
+    displayProductsTable();
+    updateProductsInfo();
+  }
+
+  function clearProductsFilters() {
+    $("#filter-product-name").val("");
+    $("#filter-product-status").val("");
+    $("#filter-product-price").val("");
+    filterProducts();
+  }
+
+  // ===== Display Functions =====
+  function displayProductsTable() {
+    const startIndex = (currentProductsPage - 1) * productsPerPage;
+    const endIndex = startIndex + productsPerPage;
+    const productsToShow = filteredProducts.slice(startIndex, endIndex);
+
+    const tbody = $("#products-table-body");
+    tbody.empty();
+
+    if (productsToShow.length === 0) {
+      $("#products-table").hide();
+      $("#no-products-message").show();
+      $("#products-pagination").hide();
+      return;
+    }
+
+    $("#products-table").show();
+    $("#no-products-message").hide();
+
+    productsToShow.forEach((product) => {
+      const totalStock = getTotalStock(product);
+      const stockClass = totalStock <= 5 ? 'text-red-600 font-semibold' : totalStock <= 10 ? 'text-yellow-600' : 'text-green-600';
+
+      const statusBadge = product.isAvailable
+        ? '<span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">เปิดขาย</span>'
+        : '<span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">ปิดขาย</span>';
+
+      const firstImage = (product.images && product.images.length > 0) ?
+        product.images[0] : 'https://via.placeholder.com/50x50.png?text=No+Image';
+
+      const optionsCount = (product.options && product.options.length > 0) ?
+        `<span class="px-2 py-1 text-xs font-medium text-purple-800 bg-purple-100 rounded">${product.options.length} ตัวเลือก</span>` :
+        '<span class="text-xs text-gray-400">ไม่มี</span>';
+
+      tbody.append(`
+                    <tr class="transition duration-200 bg-white border-b hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <img src="${firstImage}" alt="${product.name}" 
+                                 class="w-16 h-16 object-cover rounded-lg border">
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-gray-900">${product.name || 'N/A'}</div>
+                        </td>
+                        <td class="px-6 py-4">${formatPrice(product.basePrice || 0)} บาท</td>
+                        <td class="px-6 py-4 ${stockClass}">${totalStock}</td>
+                        <td class="px-6 py-4">${statusBadge}</td>
+                        <td class="px-6 py-4">${optionsCount}</td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex justify-center gap-2">
+                                <button class="px-3 py-1 text-xs text-white transition duration-200 bg-yellow-500 rounded edit-product hover:bg-yellow-600" 
+                                        data-product-id="${product.id}" title="แก้ไข">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="toggle-product-status ${product.isAvailable ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white px-3 py-1 rounded text-xs transition duration-200" 
+                                        data-product-id="${product.id}" title="${product.isAvailable ? 'ปิดการขาย' : 'เปิดการขาย'}">
+                                    <i class="fas ${product.isAvailable ? 'fa-toggle-off' : 'fa-toggle-on'}"></i>
+                                </button>
+                                <button class="px-3 py-1 text-xs text-white transition duration-200 bg-red-500 rounded delete-product hover:bg-red-600" 
+                                        data-product-id="${product.id}" title="ลบ">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+    });
+
+    updateProductsPagination();
+    setupResponsiveTable();
+  }
+
+  function updateProductsInfo() {
+    $('#total-products').text(siteProducts.length);
+    $('#available-products').text(siteProducts.filter(p => p.isAvailable).length);
+    $('#unavailable-products').text(siteProducts.filter(p => !p.isAvailable).length);
+    $('#low-stock-products').text(siteProducts.filter(p => getTotalStock(p) <= 5).length);
+    $('#product-count').text(siteProducts.length);
+
+    const totalText = filteredProducts.length !== siteProducts.length ?
+      `${filteredProducts.length} จาก ${siteProducts.length}` :
+      `${siteProducts.length}`;
+
+    $('.text-gray-600 span').text(totalText);
+  }
+
+  // ===== Modal Functions =====
+  function openAddProductModal() {
+    $("#product-modal-title").text("เพิ่มสินค้าใหม่");
+    $("#product-form")[0].reset();
+    $("#product-id").val("");
+    $("#product-options-container").empty();
+    $("#product-variants-container").empty();
+    $("#product-variants-section").addClass("hidden");
+    $("#product-image-previews").empty();
+    $("#product-modal").removeClass("hidden");
+    currentProductModal = null;
+  }
+
+  function editProduct() {
+    const productId = $(this).data("product-id");
+    const product = siteProducts.find(p => p.id === productId);
+
+    if (!product) return;
+
+    $("#product-modal-title").text("แก้ไขข้อมูลสินค้า");
+    $("#product-id").val(product.id);
+    $("#product-name").val(product.name || "");
+    $("#product-base-price").val(product.basePrice || "");
+    $("#product-name-sku").val(product.nameSku || "");
+    $("#product-description").val(product.description || "");
+    $("#product-stock").val(product.stock || "");
+    $("#product-max-quantity").val(product.maxQuantity || 50);
+    $("#product-images").val(product.images ? product.images.join(',') : "");
+    $("#product-is-available").prop("checked", product.isAvailable !== false);
+
+    // โหลดตัวเลือกและตัวแปร
+    displayProductOptions(product.options || []);
+    if (product.variants && product.variants.length > 0) {
+      displayProductVariants(product.variants);
+    }
+    updateImagePreviews();
+
+    currentProductModal = product;
+    $("#product-modal").removeClass("hidden");
+  }
+
+  function closeProductModal() {
+    $("#product-modal").addClass("hidden");
+    $("#product-form")[0].reset();
+  }
+
+  // ฟังก์ชันบันทึกสินค้า
+  function saveProduct(e) {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const productData = Object.fromEntries(formData.entries());
+    const isEdit = !!productData.id;
+
+    // Validation
+    if (!productData.name.trim()) {
+      Swal.fire("ข้อผิดพลาด", "กรุณาใส่ชื่อสินค้า", "warning");
+      return;
+    }
+
+    if (!productData.basePrice || parseFloat(productData.basePrice) < 0) {
+      Swal.fire("ข้อผิดพลาด", "กรุณาใส่ราคาที่ถูกต้อง", "warning");
+      return;
+    }
+
+    // เก็บข้อมูลตัวเลือกและตัวแปร
+    const options = collectProductOptions();
+    const variants = collectProductVariants();
+
+    productData.options = options;
+    productData.variants = variants;
+    productData.isAvailable = $("#product-is-available").is(":checked");
+    productData.basePrice = parseFloat(productData.basePrice);
+    productData.stock = parseInt(productData.stock) || 0;
+    productData.maxQuantity = parseInt(productData.maxQuantity) || 50;
+    productData.nameSku = $("#product-name-sku").val().trim() || 'PRODUCT'
+
+    // Handle images
+    const imagesValue = $("#product-images").val();
+    productData.images = imagesValue ? imagesValue.split(',').map(img => img.trim()).filter(img => img) : [];
+
+    showLoading();
+
+    setTimeout(() => {
+      if (isEdit) {
+        google.script.run
+          .withSuccessHandler(() => {
+            const index = siteProducts.findIndex(
+              (p) => p.id === productData.id,
+            );
+            if (index !== -1)
+              siteProducts[index] = {
+                ...siteProducts[index],
+                ...productData,
+              };
+            hideLoading();
+            closeProductModal();
+            filterProducts();
+            updateProductsInfo();
+            Swal.fire("สำเร็จ", "แก้ไขข้อมูลสินค้าแล้ว", "success");
+          })
+          .withFailureHandler((error) => {
+            hideLoading();
+            Swal.fire("ผิดพลาด", error.message || "ไม่สามารถแก้ไขได้", "error");
+          })
+          .updateProduct(productData);
+      } else {
+        google.script.run
+          .withSuccessHandler((newProduct) => {
+            siteProducts.push(newProduct);
+            hideLoading();
+            closeProductModal();
+            filterProducts();
+            updateProductsInfo();
+            Swal.fire("สำเร็จ", "เพิ่มสินค้าใหม่แล้ว", "success");
+          })
+          .withFailureHandler((error) => {
+            hideLoading();
+            Swal.fire("ผิดพลาด", error.message || "ไม่สามารถเพิ่มได้", "error");
+          })
+          .createProduct(productData);
+      }
+    }, 1000);
+  }
+
+  function deleteProduct() {
+    const productId = $(this).data("product-id");
+    const product = siteProducts.find(p => p.id === productId);
+
+    if (!product) return;
+
+    Swal.fire({
+      title: "ยืนยันการลบ",
+      text: `ต้องการลบสินค้า "${product.name}" หรือไม่?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "ลบ",
+      cancelButtonText: "ยกเลิก",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        showLoading();
+
+        google.script.run
+          .withSuccessHandler(() => {
+
+            const index = siteProducts.findIndex(p => p.id === productId);
+            if (index !== -1) siteProducts.splice(index, 1);
+
+            hideLoading();
+            filterProducts();
+            updateProductsInfo();
+            Swal.fire("ลบแล้ว", "ลบสินค้าเรียบร้อยแล้ว", "success");
+          })
+          .withFailureHandler(() => {
+            hideLoading();
+            Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถลบสินค้าได้", "error");
+          })
+          .deleteProduct(productId);
+      }
+    });
+  }
+
+  function toggleProductStatus() {
+    const productId = $(this).data("product-id");
+    const product = siteProducts.find(p => p.id === productId);
+
+    if (!product) {
+      Swal.fire("ข้อผิดพลาด", "ไม่พบสินค้าที่ต้องการ", "error");
+      return;
+    }
+
+    const newStatus = !product.isAvailable;
+    const actionText = newStatus ? "เปิดขาย" : "ปิดขาย";
+    const confirmText = newStatus ? "เปิดการขาย" : "ปิดการขาย";
+
+    // ยืนยันการเปลี่ยนแปลง
+    Swal.fire({
+      title: `${confirmText}สินค้า?`,
+      text: `คุณต้องการ${confirmText}สินค้า "${product.name}" หรือไม่?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: newStatus ? "#10b981" : "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: `ใช่, ${actionText}`,
+      cancelButtonText: "ยกเลิก"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        showLoading();
+
+        google.script.run
+          .withSuccessHandler((updatedProduct) => {
+
+            const index = siteProducts.findIndex(p => p.id === productId);
+            if (index !== -1) {
+              siteProducts[index] = updatedProduct;
+            }
+
+            hideLoading();
+
+            filterProducts();
+            updateProductsInfo();
+
+            Swal.fire({
+              title: "สำเร็จ!",
+              text: `${actionText}สินค้า "${updatedProduct.name}" แล้ว`,
+              icon: "success",
+              timer: 2000,
+              showConfirmButton: false
+            });
+          })
+          .withFailureHandler((error) => {
+            hideLoading();
+
+            console.error("Error toggling product status:", error);
+
+            Swal.fire({
+              title: "เกิดข้อผิดพลาด!",
+              text: error.message || `ไม่สามารถ${actionText}สินค้าได้`,
+              icon: "error",
+              confirmButtonText: "ตกลง"
+            });
+          })
+          .toggleProductStatus(productId);
+      }
+    });
+  }
+
+
+  // ===== Product Options Functions =====
+  function addProductOption() {
+    const optionIndex = $('#product-options-container .option-item').length;
+    const optionHtml = `
+                <div class="p-4 border rounded-lg option-item bg-gray-50">
+                    <div class="flex items-center justify-between mb-2">
+                        <h5 class="font-medium text-gray-700">ตัวเลือกที่ ${optionIndex + 1}</h5>
+                        <button type="button" class="text-red-500 remove-option-btn hover:text-red-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <div>
+                            <label class="block mb-1 text-sm font-medium text-gray-700">ชื่อตัวเลือก</label>
+                            <input type="text" name="optionName_${optionIndex}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="เช่น สี, ไซส์" required>
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-sm font-medium text-gray-700">ค่าตัวเลือก (คั่นด้วยลูกน้ำ)</label>
+                            <input type="text" name="optionValues_${optionIndex}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="เช่น แดง,เขียว,น้ำเงิน" required>
+                        </div>
+                    </div>
+                </div>
+            `;
+    $('#product-options-container').append(optionHtml);
+
+    if ($('#product-options-container .option-item').length > 0) {
+      $('#product-variants-section').removeClass('hidden');
+    }
+  }
+
+  function removeProductOption() {
+    $(this).closest('.option-item').remove();
+    updateOptionIndices();
+
+    if ($('#product-options-container .option-item').length === 0) {
+      $('#product-variants-section').addClass('hidden');
+      $('#product-variants-container').empty();
+    }
+  }
+
+  function updateOptionIndices() {
+    $('#product-options-container .option-item').each(function (index) {
+      $(this).find('h5').text(`ตัวเลือกที่ ${index + 1}`);
+      $(this).find('input[name^="optionName_"]').attr('name', `optionName_${index}`);
+      $(this).find('input[name^="optionValues_"]').attr('name', `optionValues_${index}`);
+    });
+  }
+
+  function displayProductOptions(options) {
+    $('#product-options-container').empty();
+    if (!options || options.length === 0) return;
+
+    options.forEach((option, index) => {
+      const optionHtml = `
+                    <div class="p-4 border rounded-lg option-item bg-gray-50">
+                        <div class="flex items-center justify-between mb-2">
+                            <h5 class="font-medium text-gray-700">ตัวเลือกที่ ${index + 1}</h5>
+                            <button type="button" class="text-red-500 remove-option-btn hover:text-red-700">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-gray-700">ชื่อตัวเลือก</label>
+                                <input type="text" name="optionName_${index}" value="${option.name}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-gray-700">ค่าตัวเลือก (คั่นด้วยลูกน้ำ)</label>
+                                <input type="text" name="optionValues_${index}" value="${option.values.join(',')}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                    </div>
+                `;
+      $('#product-options-container').append(optionHtml);
+    });
+
+    if (options.length > 0) {
+      $('#product-variants-section').removeClass('hidden');
+    }
+  }
+
+  function collectProductOptions() {
+    const options = [];
+    $('#product-options-container .option-item').each(function () {
+      const name = $(this).find('input[name^="optionName_"]').val().trim();
+      const values = $(this).find('input[name^="optionValues_"]').val()
+        .split(',').map(v => v.trim()).filter(v => v);
+
+      if (name && values.length > 0) {
+        options.push({ name, values });
+      }
+    });
+    return options;
+  }
+
+  // ===== Product Variants Functions =====
+  function generateProductVariants() {
+    const options = collectProductOptions();
+    if (options.length === 0) {
+      Swal.fire('ข้อผิดพลาด', 'กรุณาเพิ่มตัวเลือกสินค้าก่อน', 'warning');
+      return;
+    }
+
+    // สร้างชุดค่าผสม
+    const combinations = options.reduce((acc, option) => {
+      if (acc.length === 0) return option.values.map(v => ({ [option.name]: v }));
+      return acc.flatMap(combo => option.values.map(v => ({ ...combo, [option.name]: v })));
+    }, []);
+
+    displayProductVariants(combinations.map(attrs => ({
+      attributes: attrs,
+      sku: generateSKU(attrs),
+      price: '',
+      stock: 0
+    })));
+  }
+
+  function generateSKU(attributes) {
+    const productNameSKU = $('#product-name-sku').val() || 'PRODUCT';
+    const suffix = Object.values(attributes).join('-').toUpperCase();
+    return `${productNameSKU}-${suffix}`;
+  }
+
+  function displayProductVariants(variants) {
+    const container = $('#product-variants-container');
+    container.empty();
+
+    variants.forEach((variant, index) => {
+      const attributesDisplay = Object.entries(variant.attributes)
+        .map(([k, v]) => `<strong>${k}:</strong> ${v}`).join(', ');
+
+      const variantHtml = `
+                    <div class="p-4 bg-white border rounded-lg variant-item">
+                        <div class="mb-2">
+                            <h6 class="font-medium text-gray-700">${attributesDisplay}</h6>
+                        </div>
+                        <input type="hidden" name="variantAttributes_${index}" value='${JSON.stringify(variant.attributes)}'>
+                        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+                            <div>
+                                <label class="block mb-1 text-xs font-medium text-gray-700">SKU</label>
+                                <input type="text" name="variantSku_${index}" value="${variant.sku}" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block mb-1 text-xs font-medium text-gray-700">ราคา (บาท)</label>
+                                <input type="number" name="variantPrice_${index}" value="${variant.price}" step="0.01" min="0" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="ใช้ราคาเริ่มต้น">
+                            </div>
+                            <div>
+                                <label class="block mb-1 text-xs font-medium text-gray-700">สต็อก</label>
+                                <input type="number" name="variantStock_${index}" value="${variant.stock}" min="0" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                    </div>
+                `;
+      container.append(variantHtml);
+    });
+  }
+
+  function collectProductVariants() {
+    const variants = [];
+    $('#product-variants-container .variant-item').each(function () {
+      const attributes = JSON.parse($(this).find('input[name^="variantAttributes_"]').val());
+      const sku = $(this).find('input[name^="variantSku_"]').val();
+      const price = $(this).find('input[name^="variantPrice_"]').val();
+      const stock = $(this).find('input[name^="variantStock_"]').val();
+
+      variants.push({
+        attributes,
+        sku,
+        price: price ? parseFloat(price) : null,
+        stock: parseInt(stock) || 0
+      });
+    });
+    return variants;
+  }
+
+  function removeProductVariant() {
+    $(this).closest(".variant-item").remove();
+  }
+
+  // ===== Image Functions =====
+  function updateImagePreviews() {
+    const images = $("#product-images").val();
+    const preview = $("#product-image-previews");
+    preview.empty();
+
+    const imageUrls = images.split(',').map(url => url.trim()).filter(url => url);
+
+    imageUrls.forEach(url => {
+      preview.append(`
+            <div class="relative">
+                <img src="${url}" alt="Preview" class="object-cover w-16 h-16 border rounded">
+                <button type="button"
+                  class="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-red-600 text-white text-sm rounded-full shadow-md hover:bg-red-700 transition"
+                  onclick="removeImagePreview(this, '${url}')">
+                  &times;
+                </button>            
+            </div>
+                `);
+    });
+  }
+
+  function removeImagePreview(button, url) {
+    const currentUrls = $('#product-images').val().split(',').map(u => u.trim());
+    const newUrls = currentUrls.filter(u => u !== url);
+    $('#product-images').val(newUrls.join(','));
+    updateImagePreviews();
+  }
+
+  // ===== Responsive Functions =====
+  function getResponsiveProductsPageSize() {
+    const width = window.innerWidth;
+    const savedPageSize = getSavedProductsPageSize();
+
+    if (savedPageSize && width >= 1024) {
+      return Math.max(savedPageSize, 5);
+    }
+
+    if (width < 480) return 5;
+    else if (width < 768) return 10;
+    else if (width < 1024) return 15;
+    else return 25;
+  }
+
+  function getSavedProductsPageSize() {
+    try {
+      const saved = localStorage.getItem("productsPerPage");
+      return saved ? parseInt(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setupDynamicProductsPagination() {
+    let resizeTimeout;
+
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const newPageSize = getResponsiveProductsPageSize();
+        if (newPageSize !== productsPerPage) {
+          const currentFirstItem = (currentProductsPage - 1) * productsPerPage;
+          productsPerPage = newPageSize;
+          currentProductsPage = Math.max(
+            1,
+            Math.floor(currentFirstItem / productsPerPage) + 1,
+          );
+
+          updateProductsPageSizeSelector();
+          displayProductsTable();
+          updateProductsPagination();
+          showProductsPageSizeChangeNotification(newPageSize);
+        } else {
+          updateProductsPagination();
+        }
+      }, 250);
+    };
+
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", () => {
+      setTimeout(handleResize, 500);
+    });
+  }
+
+  function showProductsPageSizeChangeNotification(newSize) {
+    const notification = document.createElement("div");
+    notification.className =
+      "fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out translate-x-full z-50";
+    notification.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-info-circle"></i>
+                    <span>ปรับจำนวนรายการเป็น ${newSize} รายการต่อหน้า</span>
+                </div>
+            `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => notification.classList.remove("translate-x-full"), 100);
+    setTimeout(() => {
+      notification.classList.add("translate-x-full");
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }, 2000);
+  }
+
+  function updateProductsPageSizeSelector() {
+    const selector = document.getElementById("products-per-page");
+    if (selector) {
+      selector.value = productsPerPage;
+    }
+  }
+
+  // ===== Pagination Functions =====
+  function updateProductsPagination() {
+    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+    const pagination = $("#products-pagination");
+    pagination.empty();
+
+    if (totalPages <= 1) {
+      addDynamicProductsPageSizeSelector();
+      return;
+    }
+
+    const paginationHtml = generateProductsPagination(currentProductsPage, totalPages);
+    pagination.html(paginationHtml);
+
+    addDynamicProductsPageSizeSelector();
+    bindProductsPaginationEvents();
+  }
+
+  function generateProductsPagination(currentPage, totalPages) {
+    const width = window.innerWidth;
+    const isMobile = width < 768;
+
+    if (isMobile) {
+      return generateMobileProductsPagination(currentPage, totalPages);
+    } else {
+      return generateDesktopProductsPagination(currentPage, totalPages);
+    }
+  }
+
+  function generateDesktopProductsPagination(currentPage, totalPages) {
+    let html = '<div class="flex flex-wrap items-center justify-between gap-4">';
+
+    html += '<div class="flex items-center gap-1">';
+
+    if (currentPage > 1) {
+      html += `
+                    <button class="flex-shrink-0 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg products-page-btn hover:bg-gray-50 transition-colors" 
+                            data-page="1" title="หน้าแรก">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="flex-shrink-0 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg products-page-btn hover:bg-gray-50 transition-colors" 
+                            data-page="${currentPage - 1}" title="หน้าก่อน">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                `;
+    }
+
+    const pageRange = calculateProductsPageRange(currentPage, totalPages);
+    pageRange.forEach((item) => {
+      if (item === "...") {
+        html += `<span class="flex-shrink-0 px-3 py-2 text-sm text-gray-500">...</span>`;
+      } else if (item === currentPage) {
+        html += `
+                        <button class="flex-shrink-0 px-3 py-2 text-sm text-white bg-blue-600 border border-blue-600 rounded-lg font-semibold shadow-sm">
+                            ${item}
+                        </button>
+                    `;
+      } else {
+        html += `
+                        <button class="flex-shrink-0 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg products-page-btn hover:bg-gray-50 transition-colors" 
+                                data-page="${item}">
+                            ${item}
+                        </button>
+                    `;
+      }
+    });
+
+    if (currentPage < totalPages) {
+      html += `
+                    <button class="flex-shrink-0 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg products-page-btn hover:bg-gray-50 transition-colors" 
+                            data-page="${currentPage + 1}" title="หน้าถัดไป">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="flex-shrink-0 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg products-page-btn hover:bg-gray-50 transition-colors" 
+                            data-page="${totalPages}" title="หน้าสุดท้าย">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                `;
+    }
+
+    html += "</div>";
+
+    const startItem = (currentPage - 1) * productsPerPage + 1;
+    const endItem = Math.min(currentPage * productsPerPage, filteredProducts.length);
+
+    html += `
+                <div class="flex-shrink-0 text-sm text-gray-600 hidden sm:block">
+                    แสดง ${startItem.toLocaleString()}-${endItem.toLocaleString()} 
+                    จาก ${filteredProducts.length.toLocaleString()} รายการ
+                </div>
+            `;
+
+    html += "</div>";
+    return html;
+  }
+
+  function generateMobileProductsPagination(currentPage, totalPages) {
+    let html = '<div class="flex flex-col gap-3">';
+
+    html += '<div class="flex items-center justify-between">';
+
+    html += `
+                <button class="flex items-center gap-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg products-page-btn hover:bg-gray-50 ${currentPage <= 1 ? "opacity-50 cursor-not-allowed" : ""}" 
+                        data-page="${currentPage - 1}" ${currentPage <= 1 ? "disabled" : ""}>
+                    <i class="fas fa-chevron-left text-xs"></i>
+                    <span>ก่อนหน้า</span>
+                </button>
+            `;
+
+    html += `
+                <div class="flex items-center gap-2">
+                    <input type="number" id="mobile-products-page-input" value="${currentPage}" min="1" max="${totalPages}"
+                           class="w-12 px-1 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <span class="text-sm text-gray-600 whitespace-nowrap">/ ${totalPages}</span>
+                </div>
+            `;
+
+    html += `
+                <button class="flex items-center gap-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg products-page-btn hover:bg-gray-50 ${currentPage >= totalPages ? "opacity-50 cursor-not-allowed" : ""}" 
+                        data-page="${currentPage + 1}" ${currentPage >= totalPages ? "disabled" : ""}>
+                    <span>ถัดไป</span>
+                    <i class="fas fa-chevron-right text-xs"></i>
+                </button>
+            `;
+
+    html += "</div>";
+
+    const startItem = (currentPage - 1) * productsPerPage + 1;
+    const endItem = Math.min(currentPage * productsPerPage, filteredProducts.length);
+
+    html += `
+                <div class="text-center text-sm text-gray-600">
+                    ${startItem}-${endItem} จาก ${filteredProducts.length} รายการ
+                </div>
+            `;
+
+    html += "</div>";
+    return html;
+  }
+
+  function calculateProductsPageRange(currentPage, totalPages) {
+    const maxVisible = window.innerWidth >= 1024 ? 9 : 7;
+
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const range = [];
+    const delta = Math.floor((maxVisible - 3) / 2);
+
+    range.push(1);
+
+    let startPage = Math.max(2, currentPage - delta);
+    let endPage = Math.min(totalPages - 1, currentPage + delta);
+
+    if (currentPage <= delta + 2) {
+      endPage = Math.min(totalPages - 1, maxVisible - 2);
+    }
+
+    if (currentPage >= totalPages - delta - 1) {
+      startPage = Math.max(2, totalPages - maxVisible + 3);
+    }
+
+    if (startPage > 2) range.push("...");
+
+    for (let i = startPage; i <= endPage; i++) {
+      range.push(i);
+    }
+
+    if (endPage < totalPages - 1) range.push("...");
+
+    if (totalPages > 1) range.push(totalPages);
+
+    return range;
+  }
+
+  function addDynamicProductsPageSizeSelector() {
+    const container = document.getElementById("products-pagination");
+    if (!container) return;
+
+    const existingSelector = document.getElementById("products-page-size-container");
+    if (existingSelector) existingSelector.remove();
+
+    const isMobile = window.innerWidth < 768;
+
+    let pageSizeSelector;
+    if (isMobile) {
+      pageSizeSelector = `
+                    <div id="products-page-size-container" class="flex items-center justify-center gap-2 mb-4 p-2 bg-gray-50 rounded-lg">
+                        <span class="text-sm text-gray-600">แสดง:</span>
+                        <select id="products-per-page" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="5" ${productsPerPage === 5 ? "selected" : ""}>5</option>
+                            <option value="10" ${productsPerPage === 10 ? "selected" : ""}>10</option>
+                            <option value="15" ${productsPerPage === 15 ? "selected" : ""}>15</option>
+                            <option value="25" ${productsPerPage === 25 ? "selected" : ""}>25</option>
+                        </select>
+                        <span class="text-sm text-gray-600">รายการ</span>
+                    </div>
+                `;
+    } else {
+      pageSizeSelector = `
+                    <div id="products-page-size-container" class="flex flex-wrap items-center justify-between gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-600">แสดง:</span>
+                            <select id="products-per-page" 
+                                    class="px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="5" ${productsPerPage === 5 ? "selected" : ""}>5 รายการ</option>
+                                <option value="10" ${productsPerPage === 10 ? "selected" : ""}>10 รายการ</option>
+                                <option value="15" ${productsPerPage === 15 ? "selected" : ""}>15 รายการ</option>
+                                <option value="25" ${productsPerPage === 25 ? "selected" : ""}>25 รายการ</option>
+                                <option value="50" ${productsPerPage === 50 ? "selected" : ""}>50 รายการ</option>
+                                <option value="100" ${productsPerPage === 100 ? "selected" : ""}>100 รายการ</option>
+                            </select>
+                            <span class="text-sm text-gray-600">ต่อหน้า</span>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 text-sm text-gray-500">
+                            <div class="hidden lg:flex items-center gap-2">
+                                <i class="fas fa-keyboard text-xs"></i>
+                                <span>ใช้ปุ่ม ← → เพื่อเปลี่ยนหน้า</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <i class="fas fa-mobile-alt text-xs"></i>
+                                <span>ปรับอัตโนมัติตามหน้าจอ</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+    }
+
+    container.insertAdjacentHTML("beforebegin", pageSizeSelector);
+
+    $("#products-per-page")
+      .off("change")
+      .on("change", function () {
+        const newPageSize = parseInt($(this).val());
+        changeProductsPerPage(newPageSize, true);
+      });
+  }
+
+  function bindProductsPaginationEvents() {
+    $(".products-page-btn")
+      .off("click")
+      .on("click", function () {
+        const page = parseInt($(this).data("page"));
+        if (!$(this).prop("disabled") && page !== currentProductsPage) {
+          goToProductsPage(page);
+        }
+      });
+
+    $("#mobile-products-page-input")
+      .off("change blur keypress")
+      .on("change blur", function () {
+        const jumpPage = parseInt($(this).val());
+        const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+        if (jumpPage >= 1 && jumpPage <= totalPages && jumpPage !== currentProductsPage) {
+          goToProductsPage(jumpPage);
+        } else if (jumpPage < 1 || jumpPage > totalPages) {
+          $(this).val(currentProductsPage);
+          Swal.fire("ข้อผิดพลาด", `กรุณาใส่หมายเลขหน้าระหว่าง 1-${totalPages}`, "warning");
+        }
+      })
+      .on("keypress", function (e) {
+        if (e.which === 13) $(this).trigger("change");
+      });
+  }
+
+  function changeProductsPerPage(newPageSize, userInitiated = false) {
+    const currentFirstItem = (currentProductsPage - 1) * productsPerPage;
+
+    productsPerPage = newPageSize;
+    currentProductsPage = Math.max(1, Math.floor(currentFirstItem / productsPerPage) + 1);
+
+    if (userInitiated) {
+      try {
+        localStorage.setItem("productsPerPage", productsPerPage.toString());
+      } catch (e) {
+        console.warn("Cannot save page size");
+      }
+    }
+
+    displayProductsTable();
+    updateProductsPagination();
+
+    if (userInitiated) {
+      const table = document.getElementById("products-table");
+      if (table) {
+        table.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  }
+
+  function goToProductsPage(page) {
+    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+    if (page < 1 || page > totalPages) return;
+
+    currentProductsPage = page;
+
+    const table = document.getElementById("products-table");
+    if (table) {
+      table.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    displayProductsTable();
+    updateProductsPagination();
+  }
+
+  // ===== Keyboard Navigation =====
+  function setupProductsKeyboardNavigation() {
+    document.addEventListener("keydown", function (e) {
+      if (
+        document.activeElement.tagName === "INPUT" ||
+        document.activeElement.tagName === "TEXTAREA" ||
+        document.activeElement.tagName === "SELECT"
+      ) {
+        return;
+      }
+
+      const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault();
+          if (currentProductsPage > 1) {
+            goToProductsPage(currentProductsPage - 1);
+          }
+          break;
+
+        case "ArrowRight":
+          e.preventDefault();
+          if (currentProductsPage < totalPages) {
+            goToProductsPage(currentProductsPage + 1);
+          }
+          break;
+
+        case "Home":
+          e.preventDefault();
+          if (currentProductsPage > 1) {
+            goToProductsPage(1);
+          }
+          break;
+
+        case "End":
+          e.preventDefault();
+          if (currentProductsPage < totalPages) {
+            goToProductsPage(totalPages);
+          }
+          break;
+      }
+    });
+  }
+
+  // เรียกใช้ keyboard navigation เมื่อเริ่มต้น
+  $(document).ready(function () {
+    setupProductsKeyboardNavigation();
+  });
+</script>

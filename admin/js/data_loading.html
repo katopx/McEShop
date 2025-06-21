@@ -1,0 +1,63 @@
+<script>
+  // ===== Data Loading Functions =====
+  function loadDashboardData() {
+    // Placeholder for dashboard data loading
+    hideLoading();
+  }
+
+  async function loadStudentsPageData() {
+    showLoading();
+
+    try {
+      const data = await new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(reject)
+          .loadStudentsData();
+      });
+
+      registeredStudents = data.students || [];
+      studyGroups = data.studyGroups || [];
+
+      initializeStudentsPage();
+
+    } catch (error) {
+      Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลนักศึกษาได้", "error");
+    } finally {
+      hideLoading();
+    }
+  }
+
+  function loadOrdersData() {
+    // Placeholder for orders data loading
+    hideLoading();
+  }
+
+  async function loadProductsPageData() {
+    showLoading();
+
+    try {
+      const data = await new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(reject)
+          .loadProductsData();
+      });
+
+      siteProducts = data.siteProducts || [];
+
+      initializeProductsPage();
+
+    } catch (error) {
+      console.error("Load error:", error);
+      Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลสินค้าได้", "error");
+    } finally {
+      hideLoading();
+    }
+  }
+
+  function loadDiscountsData() {
+    // Placeholder for discounts data loading
+    hideLoading();
+  }
+</script>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <?!= include('style/config') ?>
+
+  <!-- Flowbite CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/3.1.2/flowbite.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- jQuery Loading Overlay -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-loading-overlay/2.1.7/loadingoverlay.min.js"></script>
+
+  <!-- Global CSS -->
+  <?!= include('style/global') ?>
+
+  <!-- Back to User -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('back-to-user').href = "<?= getUrl(); ?>?page=user";
+    });
+  </script>
+
+</head>
+
+<body class="bg-gray-100">
+  <!-- Login Page -->
+  <div id="login-container" class="min-h-screen">
+    <?!= include('admin/00_login') ?>
+  </div>
+
+  <!-- Admin Panel (Hidden until login) -->
+  <div id="admin-container" class="hidden">
+    <!-- Mobile Menu Button -->
+    <button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar"
+      type="button"
+      class="inline-flex items-center p-2 mt-2 text-sm text-gray-500 rounded-lg ms-3 sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+      <span class="sr-only">Open sidebar</span>
+      <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg">
+        <path clip-rule="evenodd" fill-rule="evenodd"
+          d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z">
+        </path>
+      </svg>
+    </button>
+
+    <!-- Include Sidebar -->
+    <?!= include('admin/sidebar') ?>
+
+    <!-- Main Content -->
+    <div id="main-content" class="p-4 sm:ml-64">
+      <!-- Dashboard Page -->
+      <div id="dashboard-page" class="page-content">
+        <?!= include('admin/01_dashboard') ?>
+      </div>
+
+      <!-- Manage Orders Page -->
+      <div id="manage_orders-page" class="page-content hidden">
+        <?!= include('admin/02_manage_orders') ?>
+      </div>
+
+      <!-- Manage Students Page -->
+      <div id="manage_students-page" class="page-content hidden">
+        <?!= include('admin/03_manage_students') ?>
+      </div>
+
+      <!-- Manage Products Page -->
+      <div id="manage_products-page" class="page-content hidden">
+        <?!= include('admin/04_manage_products') ?>
+      </div>
+
+      <!-- Manage Discounts Page -->
+      <div id="manage_discounts-page" class="page-content hidden">
+        <?!= include('admin/05_manage_discounts') ?>
+      </div>
+
+      <!-- Control System Page -->
+      <div id="control_system-page" class="page-content hidden">
+        <?!= include('admin/06_control_system') ?>
+      </div>
+
+      <!-- Manage Admins Page -->
+      <div id="manage_admins-page" class="page-content hidden">
+        <?!= include('admin/07_manage_admins') ?>
+      </div>
+    </div>
+  </div>
+
+  <?!= include('admin/modal') ?>
+
+  <!-- Custom JavaScript Files -->
+  <?!= include('admin/js/config') ?>
+  <?!= include('admin/js/00_auth') ?>
+  <?!= include('admin/js/ui') ?>
+  <?!= include('admin/js/data_loading') ?>
+  <?!= include('admin/js/03_manage_students') ?>
+  <?!= include('admin/js/04_manage_products') ?>
+  <?!= include('admin/js/main') ?>
+
+</body>
+
+</html>
