@@ -64,13 +64,13 @@ function getSheet(sheetName) {
       case "roles":
         sheet
           .getRange(1, 1, 1, 3)
-          .setValues([["role_name", "role", "permissions"]]);
+          .setValues([["role_name","role","permissions"]]);
         break;
 
       case "adminUsers":
         sheet
           .getRange(1, 1, 1, 5)
-          .setValues([["username", "password", "name", "role"]]);
+          .setValues([["username", "password","name","role"]]);
         break;
 
       case "studentOrders":
@@ -173,17 +173,17 @@ function getSheet(sheetName) {
 function sheetToJson(sheetName) {
   const sheet = getSheet(sheetName);
   const data = sheet.getDataRange().getValues();
-
+  
   if (data.length <= 1) return [];
-
+  
   const headers = data[0];
   const rows = data.slice(1);
-
+  
   return rows.map(row => {
     const obj = {};
     headers.forEach((header, index) => {
       let value = row[index];
-
+      
       // แปลง JSON string กลับเป็น object/array
       if (typeof value === 'string' && (value.startsWith('[') || value.startsWith('{'))) {
         try {
@@ -192,7 +192,7 @@ function sheetToJson(sheetName) {
           // ถ้า parse ไม่ได้ให้ใช้ค่าเดิม
         }
       }
-
+      
       obj[header] = value;
     });
     return obj;
@@ -204,29 +204,29 @@ function sheetToJson(sheetName) {
  */
 function jsonToSheet(sheetName, data) {
   const sheet = getSheet(sheetName);
-
+  
   // ลบข้อมูลเก่า (ยกเว้น header)
   if (sheet.getLastRow() > 1) {
     sheet.deleteRows(2, sheet.getLastRow() - 1);
   }
-
+  
   if (data.length === 0) return;
-
+  
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-
+  
   const rows = data.map(item => {
     return headers.map(header => {
       let value = item[header];
-
+      
       // แปลง object/array เป็น JSON string
       if (typeof value === 'object' && value !== null) {
         value = JSON.stringify(value);
       }
-
+      
       return value || '';
     });
   });
-
+  
   if (rows.length > 0) {
     sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
   }
@@ -234,13 +234,13 @@ function jsonToSheet(sheetName, data) {
 
 // สร้าง ID ที่ไม่ซ้ำกัน
 function generateUniqueId(prefix = 'ID') {
-  const letters = Array(2).fill().map(() =>
-    String.fromCharCode(Math.floor(Math.random() * 26) + 65)
-  ).join('');
+    const letters = Array(2).fill().map(() =>
+        String.fromCharCode(Math.floor(Math.random() * 26) + 65)
+    ).join('');
 
-  const digits = Math.floor(1000 + Math.random() * 9000); // 4 หลัก เช่น 1023
+    const digits = Math.floor(1000 + Math.random() * 9000); // 4 หลัก เช่น 1023
 
-  const timePart = Date.now().toString(36).slice(-4).toUpperCase(); // Base36 → UPPERCASE
+    const timePart = Date.now().toString(36).slice(-4).toUpperCase(); // Base36 → UPPERCASE
 
-  return `${prefix}_${letters}${digits}${timePart}`;
+    return `${prefix}_${letters}${digits}${timePart}`;
 }

@@ -1,4 +1,8 @@
 <script>
+  // ===== Global Variables =====
+  let currentUser = null;
+  let currentPage = 'home-page';
+
   // ===== Helper Functions =====
   function showLoading() {
     $.LoadingOverlay("show");
@@ -6,6 +10,78 @@
 
   function hideLoading() {
     $.LoadingOverlay("hide");
+  }
+
+  // ===== Navbar Update Functions =====
+  function updateNavbarForLoggedInUser() {
+
+    // แสดงเมนูสำหรับผู้ใช้ที่ล็อกอิน
+    $('#cart-button, #cart-button-mobile').removeClass('hidden');
+    $('#order-history-button, #order-history-button-mobile').removeClass('hidden');
+    $('#profile-button, #profile-button-mobile').removeClass('hidden');
+    $('#logout-button, #logout-button-mobile').removeClass('hidden');
+
+    // ซ่อนเมนูสำหรับผู้ใช้ที่ล็อกอิน
+    $('#home-text, #home-text-mobile').addClass('hidden');
+
+  }
+
+  function updateNavbarForGuestUser() {
+    // ซ่อนเมนูสำหรับผู้ใช้ที่ยังไม่ล็อกอิน
+    $('#cart-button, #cart-button-mobile').addClass('hidden');
+    $('#order-history-button, #order-history-button-mobile').addClass('hidden');
+    $('#profile-button, #profile-button-mobile').addClass('hidden');
+    $('#logout-button, #logout-button-mobile').addClass('hidden');
+
+    // แสดงเมนูสำหรับผู้ใช้ที่ยังไม่ล็อกอิน
+    $('#home-text, #home-text-mobile').removeClass('hidden');
+
+  }
+
+  // ===== showPage Functions =====
+  function showPage(pageId) {
+    // ซ่อนหน้าทั้งหมด
+    $('.page-content').addClass('hidden');
+
+    // แสดงหน้าที่เลือก
+    $(`#${pageId}`).removeClass('hidden');
+
+    // อัปเดต current page
+    currentPage = pageId;
+
+    // อัปเดต active state ของเมนู
+    updateActiveNavMenu(pageId);
+
+    // ปิด mobile menu หากเปิดอยู่
+    $('#mobile-menu').addClass('hidden');
+
+    // Scroll to top
+    window.scrollTo(0, 0);
+  }
+
+  function updateActiveNavMenu(pageId) {
+    // ลบ active class จากทุกปุ่ม
+    $('.nav-item, .nav-item-mobile').removeClass('bg-blue-100 text-blue-600');
+
+    // เพิ่ม active class ให้ปุ่มที่เลือก
+    switch (pageId) {
+      case 'home-page':
+      case 'dashboard-page':
+        $('#home-button, #home-button-mobile').addClass('bg-blue-100 text-blue-600');
+        break;
+      case 'shop-page':
+        $('#shop-button, #shop-button-mobile').addClass('bg-green-100 text-green-600');
+        break;
+      case 'cart-page':
+        $('#cart-button, #cart-button-mobile').addClass('bg-purple-100 text-purple-600');
+        break;
+      case 'order-history-page':
+        $('#order-history-button, #order-history-button-mobile').addClass('bg-orange-100 text-orange-600');
+        break;
+      case 'profile-page':
+        $('#profile-button, #profile-button-mobile').addClass('bg-indigo-100 text-indigo-600');
+        break;
+    }
   }
 
 </script>

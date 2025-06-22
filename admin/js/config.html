@@ -1,18 +1,18 @@
 <script>
-  // Global variables
-  let currentUser = null;
-  let currentPage = 'dashboard-page';
+// Global variables
+let currentUser = null;
+let currentPage = 'dashboard-page';
 
-  function showLoading() {
+function showLoading() {
     $.LoadingOverlay("show");
-  }
+}
 
-  function hideLoading() {
+function hideLoading() {
     $.LoadingOverlay("hide");
-  }
+}
 
-  // Menu configuration with role permissions
-  const sidebarMenus = {
+// Menu configuration with role permissions
+const sidebarMenus = {
     'dashboard-page': { name: 'แดชบอร์ด', icon: 'fa-tachometer-alt', requiredPermission: null },
     'manage_orders-page': { name: 'จัดการคำสั่งซื้อ', icon: 'fa-shopping-cart', requiredPermission: ['manage_orders'] },
     'manage_students-page': { name: 'จัดการนักเรียน', icon: 'fa-users', requiredPermission: ['manage_students'] },
@@ -20,26 +20,26 @@
     'manage_discounts-page': { name: 'จัดการส่วนลด', icon: 'fa-percentage', requiredPermission: ['manage_discounts'] },
     'control_system-page': { name: 'ควบคุมระบบ', icon: 'fa-cogs', requiredPermission: ['control_system'] },
     'manage_admins-page': { name: 'จัดการผู้ดูแล', icon: 'fa-user-shield', requiredPermission: ['manage_admins'] }
-  };
+};
 
-  // Utility functions
-  function hasPermission(permissionKey) {
-    // ไม่ได้ login
-    if (!currentUser) return false;
+// Utility functions
+function hasPermission(permissionKey) {
+  // ไม่ได้ login
+  if (!currentUser) return false;
 
-    // ทุกคนเข้าถึงได้
-    if (permissionKey === null) return true;
+  // ทุกคนเข้าถึงได้
+  if (permissionKey === null) return true;
 
-    // ผู้สร้างระบบเข้าถึงได้ทั้งหมด
-    if (currentUser.role === 'system_creator') return true;
+  // ผู้สร้างระบบเข้าถึงได้ทั้งหมด
+  if (currentUser.role === 'system_creator') return true;
 
-    // ✅ ถ้า permissionKey เป็น array (เช่น ['manage_orders']) ให้เช็คว่า currentUser มีอันใดอันหนึ่ง
-    if (Array.isArray(permissionKey)) {
-      return permissionKey.some(p => currentUser.permissions.includes(p));
-    }
-
-    // ✅ ถ้า permissionKey เป็น string
-    return currentUser.permissions.includes(permissionKey);
-
+  // ✅ ถ้า permissionKey เป็น array (เช่น ['manage_orders']) ให้เช็คว่า currentUser มีอันใดอันหนึ่ง
+  if (Array.isArray(permissionKey)) {
+    return permissionKey.some(p => currentUser.permissions.includes(p));
   }
+
+  // ✅ ถ้า permissionKey เป็น string
+  return currentUser.permissions.includes(permissionKey);
+
+}
 </script>
