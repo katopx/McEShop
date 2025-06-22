@@ -29,7 +29,7 @@
     <!-- Go to Admin -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('admin-fab').href = "<?= getUrl(); ?>?page=admin";
+            document.getElementById('admin-fab').addEventListener('click', function () { window.location.href = "<?= getUrl(); ?>?page=admin"; });
         });
     </script>
 
@@ -59,6 +59,7 @@
         <div id="register-page" class="page-content hidden">
             <?!= include('user/02_register') ?>
         </div>
+
     </main>
 
     <!-- Floating Buttons -->
@@ -78,7 +79,7 @@
 
     <!-- Footer -->
     <footer class="p-4 mt-auto text-center text-white bg-gray-800">
-        <p id="footer-text">&copy; ชื่อสโมสร/สาขา - มหาวิทยาลัย. สงวนลิขสิทธิ์.</p>
+        <p id="footer-text">&copy; ทดสอบ/ระบบ - KATOPX. สงวนลิขสิทธิ์.</p>
     </footer>
 
     <!-- Custom JavaScript Files -->
