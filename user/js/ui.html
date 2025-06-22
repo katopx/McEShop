@@ -1,3 +1,97 @@
 <script>
-  
+  function initializeNavbar() {
+    // Desktop Navigation Event Handlers
+    $('#home-button').on('click', function() {
+      if (currentUser) {
+        showPage('productlist-page');
+      } else {
+        showPage('home-page');
+      }
+    });
+
+    $('#shop-button').on('click', function() {
+      showPage('shop-page');
+    });
+
+    $('#cart-button').on('click', function() {
+      showPage('cart-page');
+    });
+
+    $('#order-history-button').on('click', function() {
+      showPage('order-history-page');
+    });
+
+    $('#profile-button').on('click', function() {
+      showPage('profile-page');
+    });
+
+    $('#logout-button').on('click', function() {
+      handleLogout();
+    });
+
+    // Mobile Navigation Event Handlers
+    $('#home-button-mobile').on('click', function() {
+      if (currentUser) {
+        showPage('productlist-page');
+      } else {
+        showPage('home-page');
+      }
+      toggleMobileMenu();
+    });
+
+    $('#shop-button-mobile').on('click', function() {
+      showPage('shop-page');
+      toggleMobileMenu();
+    });
+
+    $('#cart-button-mobile').on('click', function() {
+      showPage('cart-page');
+      toggleMobileMenu();
+    });
+
+    $('#order-history-button-mobile').on('click', function() {
+      showPage('order-history-page');
+      toggleMobileMenu();
+    });
+
+    $('#profile-button-mobile').on('click', function() {
+      showPage('profile-page');
+      toggleMobileMenu();
+    });
+
+    $('#logout-button-mobile').on('click', function() {
+      handleLogout();
+      toggleMobileMenu();
+    });
+
+    // Mobile Menu Toggle
+    $('#mobile-menu-button').on('click', function() {
+      toggleMobileMenu();
+    });
+
+    // Logo Click
+    $('#logo-link').on('click', function(e) {
+      e.preventDefault();
+      if (currentUser) {
+        showPage('productlist-page');
+      } else {
+        showPage('home-page');
+      }
+    });
+  }
+
+  function toggleMobileMenu() {
+    const mobileMenu = $('#mobile-menu');
+    const menuButton = $('#mobile-menu-button i');
+    
+    if (mobileMenu.hasClass('hidden')) {
+      // เปิดเมนู
+      mobileMenu.removeClass('hidden');
+      menuButton.removeClass('fa-bars').addClass('fa-times');
+    } else {
+      // ปิดเมนู
+      mobileMenu.addClass('hidden');
+      menuButton.removeClass('fa-times').addClass('fa-bars');
+    }
+  }
 </script>

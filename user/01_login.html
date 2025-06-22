@@ -10,14 +10,25 @@
         </div>
 
         <form id="login-form" class="space-y-3 sm:space-y-4">
-            <div>
-                <label for="login-fullname" class="block mb-1 text-sm font-medium text-gray-700">
-                    ชื่อ-นามสกุล (ไม่ต้องมีคำนำหน้า)
-                </label>
-                <input type="text" id="login-fullname" name="login-fullname" required
-                    class="block w-full px-3 py-2 text-sm placeholder-gray-400 border border-gray-300 rounded-md shadow-sm sm:text-sm"
-                    placeholder="เช่น สมชาย ใจดี">
-            </div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+            <label for="login-firstname" class="block mb-1 text-sm font-medium text-gray-700">
+                ชื่อ
+            </label>
+            <input type="text" id="login-firstname" name="login-firstname" required
+                class="block w-full px-3 py-2 text-sm placeholder-gray-400 border border-gray-300 rounded-md shadow-sm"
+                placeholder="เช่น สมชาย">
+        </div>
+
+        <div>
+            <label for="login-lastname" class="block mb-1 text-sm font-medium text-gray-700">
+                นามสกุล
+            </label>
+            <input type="text" id="login-lastname" name="login-lastname" required
+                class="block w-full px-3 py-2 text-sm placeholder-gray-400 border border-gray-300 rounded-md shadow-sm"
+                placeholder="เช่น ใจดี">
+        </div>
+    </div>
 
             <div>
                 <label for="login-phone" class="block mb-1 text-sm font-medium text-gray-700">

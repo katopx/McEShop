@@ -1,0 +1,77 @@
+<script>
+    // ===== Authentication Functions =====
+    function handleLogin() {
+        const firstName = $('#login-firstname').val().trim();
+        const lastName = $('#login-lastname').val().trim();
+        const phone = $('#login-phone').val().trim();
+        const fullname = `${firstName} ${lastName}`;
+
+        if (!firstName || !lastName || !phone) {
+            Swal.fire('กรุณากรอกข้อมูล', 'กรุณากรอกชื่อนามสกุลและเบอร์โทร', 'warning');
+            return;
+        }
+
+        showLoading();
+
+        google.script.run
+            .withSuccessHandler(function (result) {
+                hideLoading();
+                if (result.success) {
+                    currentUser = result.user;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                    Swal.fire({
+                        title: 'เข้าสู่ระบบสำเร็จ!',
+                        text: `ยินดีต้อนรับ ${currentUser.fullname}`,
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        updateNavbarForLoggedInUser();
+                    });
+                } else {
+                    Swal.fire('เข้าสู่ระบบไม่สำเร็จ', result.message, 'error');
+                }
+            })
+            .withFailureHandler(function (error) {
+                hideLoading();
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error');
+            })
+            .verifyStudentLogin(fullname, phone);
+    }
+
+    function handleLogout() {
+        Swal.fire({
+            title: 'ต้องการออกจากระบบ?',
+            text: 'คุณจะต้องเข้าสู่ระบบใหม่อีกครั้ง',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'ออกจากระบบ',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                currentUser = null;
+                localStorage.removeItem('currentUser');
+                updateNavbarForGuestUser();
+
+                Swal.fire({
+                    title: 'ออกจากระบบสำเร็จ',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        });
+    }
+
+    function checkExistingLogin() {
+        // Check if user is already logged in (from session/localStorage)
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            updateNavbarForLoggedInUser();
+        }
+    }
+</script>

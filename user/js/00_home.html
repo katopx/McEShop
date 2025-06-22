@@ -1,0 +1,18 @@
+<script>
+  function initializeHomePage() {
+    bindHomeEventHandlers();
+  }
+
+  // ===== Event Handlers =====
+  function bindHomeEventHandlers() {
+    // Show Login Form Button
+    $('#show-login-form').on('click', function() {
+      showPage('login-page');
+    });
+
+    // Show Register Form Button
+    $('#show-register-form').on('click', function() {
+      showPage('register-page');
+    });
+  }
+</script>

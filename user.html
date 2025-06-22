@@ -29,7 +29,7 @@
     <!-- Go to Admin -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('admin-fab').addEventListener('click', function () { window.location.href = "<?= getUrl(); ?>?page=admin"; });
+            document.getElementById('admin-fab').addEventListener('click', function () {window.location.href = "<?= getUrl(); ?>?page=admin";});
         });
     </script>
 
@@ -84,6 +84,12 @@
 
     <!-- Custom JavaScript Files -->
     <?!= include('user/js/config') ?>
+    <?!= include('user/js/auth') ?>
+
+    <?!= include('user/js/00_home') ?>
+    <?!= include('user/js/01_login') ?>
+    <?!= include('user/js/02_register') ?>
+
     <?!= include('user/js/ui') ?>
     <?!= include('user/js/main') ?>
 

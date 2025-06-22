@@ -1,0 +1,71 @@
+<script>
+  function initializeLoginPage() {
+    bindLoginEventHandlers();
+  }
+
+  // ===== Event Handlers =====
+  function bindLoginEventHandlers() {
+    // Back to Home Button
+    $(document).on('click', '#back-to-home', function() {
+      showPage('home-page');
+    });
+
+    // Switch to Register Button
+    $(document).on('click', '#switch-to-register', function() {
+      showPage('register-page');
+    });
+
+    // Login Form Submission
+    $(document).on('submit', '#login-form', function(e) {
+      e.preventDefault();
+      handleLogin();
+    });
+
+    // Enter key support
+    $(document).on('keypress', '#login-fullname, #login-phone', function(e) {
+      if (e.which === 13) {
+        $('#login-form').submit();
+      }
+    });
+
+    // Format เบอร์โทรศัพท์
+    $("#login-phone").on("input", function () {
+      const input = this;
+      const rawValue = input.value;
+      const cursorPos = input.selectionStart;
+
+      let numbers = rawValue.replace(/\D/g, "");
+      let formatted;
+
+      if (numbers.length > 6) {
+        numbers = numbers.slice(0, 10);
+        formatted =
+          numbers.slice(0, 3) +
+          "-" +
+          numbers.slice(3, 6) +
+          "-" +
+          numbers.slice(6);
+      } else if (numbers.length > 3) {
+        formatted = numbers.slice(0, 3) + "-" + numbers.slice(3);
+      } else {
+        formatted = numbers;
+      }
+
+      const digitsBeforeCursor = rawValue
+        .slice(0, cursorPos)
+        .replace(/\D/g, "").length;
+      let newCursorPos;
+
+      if (digitsBeforeCursor <= 3) {
+        newCursorPos = digitsBeforeCursor;
+      } else if (digitsBeforeCursor <= 6) {
+        newCursorPos = digitsBeforeCursor + 1;
+      } else {
+        newCursorPos = digitsBeforeCursor + 2;
+      }
+
+      input.value = formatted;
+      input.setSelectionRange(newCursorPos, newCursorPos);
+    });
+  }
+</script>

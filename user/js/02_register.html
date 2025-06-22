@@ -1,0 +1,58 @@
+<script>
+  function initializeRegisterPage() {
+    bindRegisterEventHandlers();
+  }
+
+  // ===== Event Handlers =====
+  function bindRegisterEventHandlers() {
+    // Switch to Login Button
+    $(document).on('click', '#switch-to-login', function() {
+      showPage('login-page');
+    });
+
+    // Register Form Submission
+    $(document).on('submit', '#register-form', function(e) {
+      e.preventDefault();
+    });
+
+    // Format เบอร์โทรศัพท์
+    $("#reg-phone").on("input", function () {
+      const input = this;
+      const rawValue = input.value;
+      const cursorPos = input.selectionStart;
+
+      let numbers = rawValue.replace(/\D/g, "");
+      let formatted;
+
+      if (numbers.length > 6) {
+        numbers = numbers.slice(0, 10);
+        formatted =
+          numbers.slice(0, 3) +
+          "-" +
+          numbers.slice(3, 6) +
+          "-" +
+          numbers.slice(6);
+      } else if (numbers.length > 3) {
+        formatted = numbers.slice(0, 3) + "-" + numbers.slice(3);
+      } else {
+        formatted = numbers;
+      }
+
+      const digitsBeforeCursor = rawValue
+        .slice(0, cursorPos)
+        .replace(/\D/g, "").length;
+      let newCursorPos;
+
+      if (digitsBeforeCursor <= 3) {
+        newCursorPos = digitsBeforeCursor;
+      } else if (digitsBeforeCursor <= 6) {
+        newCursorPos = digitsBeforeCursor + 1;
+      } else {
+        newCursorPos = digitsBeforeCursor + 2;
+      }
+
+      input.value = formatted;
+      input.setSelectionRange(newCursorPos, newCursorPos);
+    });
+  }
+</script>

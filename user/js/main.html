@@ -1,3 +1,16 @@
 <script>
+  // ===== Main Application Initialization =====
+  $(document).ready(function() {
 
+    initializeNavbar();
+    
+    // Check initial user state
+    if (currentUser) {
+      updateNavbarForLoggedInUser();
+    } else {
+      updateNavbarForGuestUser();
+      initializeHomePage();
+    }
+
+  });
 </script>
