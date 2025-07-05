@@ -1,10 +1,426 @@
 <script>
-  function initializeCartPage() {
-    bindCartPageEventHandlers();
-  }
+    let cart = [];
 
-  // ===== Event Handlers =====
-  function bindCartPageEventHandlers() {
+    function initializeCartPage() {
 
-  }
+        bindCartPageEventHandlers();
+        renderCartPage();
+    }
+
+    // ===== Event Handlers =====
+    function bindCartPageEventHandlers() {
+        // Go shopping from empty cart
+        $('#go-shopping-from-empty').off('click').on('click', function () {
+            if (typeof renderProductListPage === 'function') {
+                showPage('shop-page');
+            }
+        });
+
+        // Continue shopping
+        $('#continue-shopping-button').off('click').on('click', function () {
+            if (typeof renderProductListPage === 'function') {
+                showPage('shop-page');
+            }
+        });
+
+        // Select all items
+        $('#select-all-items').off('change').on('change', function () {
+            const isChecked = $(this).is(':checked');
+            $('.item-checkbox').prop('checked', isChecked);
+            cart.forEach(item => item.selected = isChecked);
+            updateCartDisplay();
+        });
+
+        // Select individual items
+        $(document).off('change', '.item-checkbox').on('change', '.item-checkbox', function () {
+            const index = $(this).data('cart-index');
+            const isChecked = $(this).is(':checked');
+            cart[index].selected = isChecked;
+            updateCartDisplay();
+            // TODO: Google Apps Script Integration - บันทึกการเลือกสินค้าไปยัง Google Sheets
+        });
+
+        // Quantity controls
+        $(document).off('click', '.quantity-btn').on('click', '.quantity-btn', function () {
+            const index = $(this).data('cart-index');
+            const action = $(this).data('action');
+            const item = cart[index];
+
+            // Visual feedback
+            $(this).addClass('scale-95');
+            setTimeout(() => $(this).removeClass('scale-95'), 100);
+
+            if (action === 'increase') {
+                if (item.quantity < (item.maxStock || 10)) {
+                    item.quantity++;
+                    // TODO: Google Apps Script Integration - ตรวจสอบ stock จาก Google Sheets ก่อนเพิ่มจำนวน
+                } else {
+                    Swal.fire({
+                        title: 'จำนวนเต็มแล้ว',
+                        text: 'ไม่สามารถเพิ่มจำนวนได้อีก',
+                        icon: 'warning',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    return;
+                }
+            } else if (action === 'decrease') {
+                if (item.quantity > 1) {
+                    item.quantity--;
+                }
+            }
+
+            // TODO: Google Apps Script Integration - อัพเดทจำนวนสินค้าใน Google Sheets
+            saveCart();
+            renderCartPage(); // Re-render เพื่ออัพเดทการแสดงผล
+        });
+
+        // Remove items
+        $(document).off('click', '.remove-from-cart-button').on('click', '.remove-from-cart-button', function () {
+            const index = $(this).data('cart-index');
+            removeCartItem(index);
+        });
+
+        // Discount code
+        $('#apply-discount-btn').off('click').on('click', applyDiscountCode);
+        $('#discount-code-input').off('keypress').on('keypress', function (e) {
+            if (e.which === 13) { // Enter key
+                applyDiscountCode();
+            }
+        });
+
+        $(document).off('click', '#remove-discount-btn').on('click', '#remove-discount-btn', removeDiscountCode);
+
+        // Checkout
+        $('#checkout-button').off('click').on('click', function () {
+            const selectedItems = cart.filter(item => item.selected !== false);
+            if (selectedItems.length === 0) {
+                Swal.fire({
+                    title: 'กรุณาเลือกสินค้า',
+                    text: 'กรุณาเลือกสินค้าที่ต้องการซื้ออย่างน้อย 1 รายการ',
+                    icon: 'warning',
+                    confirmButtonText: 'รับทราบ'
+                });
+                return;
+            }
+            // TODO: Google Apps Script Integration - สร้างรายการสั่งซื้อใหม่ใน Google Sheets ก่อนไปหน้า checkout
+            if (typeof renderCheckoutPage === 'function') {
+                renderCheckoutPage();
+            }
+        });
+
+        // Touch events for mobile
+        $('.quantity-btn').off('touchstart touchend').on('touchstart', function () {
+            $(this).addClass('bg-gray-300');
+        }).on('touchend', function () {
+            $(this).removeClass('bg-gray-300');
+        });
+
+    }
+
+    function renderCartPage() {
+        // TODO: Google Apps Script Integration - โหลดข้อมูลตะกร้าสินค้าจาก Google Sheets (ถ้ามีการ sync)
+
+        if (cart.length === 0) {
+            showEmptyCart();
+            return;
+        }
+
+        showCartWithItems();
+        updateCartSummary();
+        setupCartEventHandlers();
+    }
+
+    // ===== Display Functions =====
+    function showEmptyCart() {
+        $('#empty-cart-state').show();
+        $('#cart-with-items').hide();
+    }
+
+    function showCartWithItems() {
+        $('#empty-cart-state').hide();
+        $('#cart-with-items').show();
+
+        // Update cart count in header
+        $('#cart-items-count').text(cart.length);
+
+        // Render cart items
+        renderCartItems();
+
+        // Update select all text
+        updateSelectAllText();
+    }
+
+    function renderCartItems() {
+        const container = $('#cart-items-container');
+        container.empty();
+
+        cart.forEach((item, index) => {
+            const product = products.find(p => p.id === item.productId);
+            if (product) {
+                const cartItemElement = createCartItem(item, index, product);
+                container.append(cartItemElement);
+            }
+        });
+    }
+
+    function createCartItem(item, index, product) {
+        const template = $('#cart-item-template').prop('content');
+        const cartItem = $(template).clone();
+
+        // Set data attributes
+        cartItem.find('.cart-item').attr('data-cart-index', index);
+
+        // Update selection state
+        const isSelected = item.selected !== false;
+        cartItem.find('.item-checkbox').prop('checked', isSelected).attr('data-cart-index', index);
+
+        // Update border based on selection
+        if (isSelected) {
+            cartItem.find('.cart-item').addClass('border-blue-300 bg-blue-50').removeClass('border-gray-200');
+        } else {
+            cartItem.find('.cart-item').addClass('border-gray-200').removeClass('border-blue-300 bg-blue-50');
+        }
+
+        // Update product information
+        cartItem.find('.item-image').attr('src', item.image).attr('alt', item.name);
+        cartItem.find('.item-name').text(item.name);
+        cartItem.find('.item-price').text(formatPrice(item.price) + ' บาท/ชิ้น');
+        cartItem.find('.item-quantity').text(item.quantity);
+
+        // Calculate and display item total
+        const itemTotal = item.price * item.quantity;
+        cartItem.find('.item-total').text(formatPrice(itemTotal) + ' บาท');
+
+        // Handle variant details
+        let variantDetails = '';
+        if (item.variantSku) {
+            const variant = product.variants.find(v => v.sku === item.variantSku);
+            if (variant) {
+                variantDetails = Object.entries(variant.attributes)
+                    .map(([key, value]) => `${key}: ${value}`)
+                    .join(', ');
+            }
+        }
+
+        if (variantDetails) {
+            cartItem.find('.item-variant').removeClass('hidden').text(variantDetails);
+        }
+
+        // Set up data attributes for buttons
+        cartItem.find('.decrease-btn').attr('data-cart-index', index).attr('data-action', 'decrease');
+        cartItem.find('.increase-btn').attr('data-cart-index', index).attr('data-action', 'increase');
+        cartItem.find('.remove-from-cart-button').attr('data-cart-index', index);
+
+        return cartItem;
+    }
+
+    function updateSelectAllText() {
+        const selectedItems = cart.filter(item => item.selected !== false);
+        $('#select-all-text').text(`เลือกทั้งหมด (${selectedItems.length}/${cart.length})`);
+        $('#select-all-items').prop('checked', cart.length > 0 && cart.every(item => item.selected !== false));
+    }
+
+    function updateCartSummary() {
+        const selectedItems = cart.filter(item => item.selected !== false);
+        const subtotal = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        // Initialize discount if not exists
+        window.discountCode = window.discountCode || '';
+        window.discountAmount = window.discountAmount || 0;
+
+        const finalTotal = Math.max(0, subtotal - window.discountAmount);
+
+        // Update price summary
+        $('#selected-items-count').text(selectedItems.length);
+        $('#subtotal-amount').text(formatPrice(subtotal) + ' บาท');
+        $('#final-total').text(formatPrice(finalTotal) + ' บาท');
+
+        // Handle discount display
+        if (window.discountAmount > 0) {
+            $('#discount-row').show();
+            $('#discount-amount').text('-' + formatPrice(window.discountAmount) + ' บาท');
+            showDiscountSuccess();
+        } else {
+            $('#discount-row').hide();
+            hideDiscountSuccess();
+        }
+
+        // Update discount input
+        $('#discount-code-input').val(window.discountCode);
+
+        // Update checkout button
+        updateCheckoutButton(selectedItems.length, finalTotal);
+    }
+
+    function updateCheckoutButton(selectedCount, total) {
+        const checkoutBtn = $('#checkout-button');
+        const checkoutText = $('#checkout-button-text');
+        const paymentMessage = $('#payment-status-message');
+
+        if (selectedCount === 0) {
+            checkoutBtn.prop('disabled', true)
+                .removeClass('bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 hover:scale-105 shadow-lg')
+                .addClass('bg-gray-400 cursor-not-allowed');
+            checkoutText.text('เลือกสินค้า');
+            paymentMessage.hide();
+        } else if (!systemSettings.isPaymentOpen) {
+            checkoutBtn.prop('disabled', true)
+                .removeClass('bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 hover:scale-105 shadow-lg')
+                .addClass('bg-gray-400 cursor-not-allowed');
+            checkoutText.text('ระบบปิดชำระเงิน');
+            paymentMessage.text('ระบบยังไม่เปิดให้ชำระเงิน').show();
+        } else {
+            checkoutBtn.prop('disabled', false)
+                .removeClass('bg-gray-400 cursor-not-allowed')
+                .addClass('bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 hover:scale-105 shadow-lg');
+            checkoutText.text('ดำเนินการชำระเงิน');
+            paymentMessage.hide();
+        }
+    }
+
+    function showDiscountSuccess() {
+        const template = $('#discount-success-template').prop('content');
+        const discountSuccess = $(template).clone();
+        discountSuccess.find('.discount-code-name').text(window.discountCode);
+
+        $('#discount-status').empty().append(discountSuccess).show();
+    }
+
+    function hideDiscountSuccess() {
+        $('#discount-status').hide().empty();
+    }
+
+    // ===== Cart Management Functions =====
+    function removeCartItem(index) {
+        Swal.fire({
+            title: 'ยืนยันการลบสินค้า',
+            text: 'คุณต้องการลบสินค้านี้ออกจากตะกร้าหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'ลบ',
+            cancelButtonText: 'ยกเลิก',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // TODO: Google Apps Script Integration - ลบรายการสินค้าจาก Google Sheets
+                cart.splice(index, 1);
+                saveCart();
+                updateCartCount();
+                renderCartPage();
+
+                Swal.fire({
+                    title: 'ลบสำเร็จ!',
+                    text: 'สินค้าถูกลบออกจากตะกร้าแล้ว',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        });
+    }
+
+    function updateCartDisplay() {
+        // Update border colors based on selection
+        $('.cart-item').each(function (index) {
+            const item = cart[index];
+            const isSelected = item.selected !== false;
+
+            if (isSelected) {
+                $(this).addClass('border-blue-300 bg-blue-50').removeClass('border-gray-200');
+            } else {
+                $(this).addClass('border-gray-200').removeClass('border-blue-300 bg-blue-50');
+            }
+        });
+
+        updateSelectAllText();
+        updateCartSummary();
+        // TODO: Google Apps Script Integration - ซิงค์ข้อมูลตะกร้าไปยัง Google Sheets
+    }
+
+    // ===== Discount Code Functions =====
+    function applyDiscountCode() {
+        const code = $('#discount-code-input').val().trim().toUpperCase();
+        if (!code) {
+            Swal.fire({
+                title: 'กรุณาใส่โค้ด',
+                text: 'กรุณาใส่โค้ดส่วนลดที่ต้องการใช้',
+                icon: 'warning',
+                confirmButtonText: 'รับทราบ'
+            });
+            return;
+        }
+
+        // Show loading
+        $('#apply-discount-btn').html('<i class="fas fa-spinner fa-spin mr-2"></i>');
+
+        // TODO: Google Apps Script Integration - ตรวจสอบโค้ดส่วนลดจาก Google Sheets แทนการ hard code
+        setTimeout(() => {
+            const discount = discountCodes[code];
+            $('#apply-discount-btn').html('ใช้');
+
+            if (!discount) {
+                // TODO: Google Apps Script Integration - บันทึกการใช้โค้ดไม่ถูกต้องเพื่อวิเคราะห์
+                Swal.fire({
+                    title: 'โค้ดไม่ถูกต้อง',
+                    text: 'โค้ดส่วนลดที่ใส่ไม่ถูกต้องหรือหมดอายุแล้ว',
+                    icon: 'error',
+                    confirmButtonText: 'รับทราบ'
+                });
+                return;
+            }
+
+            const selectedItems = cart.filter(item => item.selected !== false);
+            const subtotal = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            if (subtotal < discount.minAmount) {
+                Swal.fire({
+                    title: 'ยอดไม่ถึงขั้นต่ำ',
+                    text: `ต้องซื้อขั้นต่ำ ${formatPrice(discount.minAmount)} บาท เพื่อใช้โค้ดนี้`,
+                    icon: 'warning',
+                    confirmButtonText: 'รับทราบ'
+                });
+                return;
+            }
+
+            let discountAmount = 0;
+            if (discount.type === 'percent') {
+                discountAmount = Math.floor(subtotal * discount.value / 100);
+            } else {
+                discountAmount = discount.value;
+            }
+
+            window.discountCode = code;
+            window.discountAmount = discountAmount;
+
+            // TODO: Google Apps Script Integration - บันทึกการใช้โค้ดส่วนลดสำเร็จไปยัง Google Sheets
+            Swal.fire({
+                title: 'ใช้โค้ดสำเร็จ!',
+                text: `ได้รับส่วนลด ${formatPrice(discountAmount)} บาท`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            updateCartSummary();
+        }, 1000);
+    }
+
+    function removeDiscountCode() {
+        window.discountCode = '';
+        window.discountAmount = 0;
+        // TODO: Google Apps Script Integration - บันทึกการยกเลิกส่วนลดไปยัง Google Sheets
+        updateCartSummary();
+    }
+
+    // ===== Utility Functions =====
+    function formatPrice(price) {
+        return parseFloat(price).toLocaleString('th-TH', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
 </script>

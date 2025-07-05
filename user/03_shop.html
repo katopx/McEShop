@@ -1,10 +1,272 @@
-<div class="mb-8 text-center">
-    <h2 class="text-4xl font-bold mb-4 text-gray-800">รายการสินค้า</h2>
-    <p class="text-gray-600 text-lg max-w-2xl mx-auto">
-        เลือกซื้อสินค้าจากทางสโมสรเมคคาทรอนิกส์
-    </p>
+<!-- Shop Page Container -->
+<div id="shop-page-container">
+    <!-- Product List View -->
+    <div id="product-list-view">
+        <!-- Header Section -->
+        <div id="shop-header" class="mb-8 text-center">
+            <h2 class="text-4xl font-bold mb-4 text-gray-800">รายการสินค้า</h2>
+            <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+                เลือกซื้อสินค้าจากทางสโมสรเมคคาทรอนิกส์
+            </p>
+        </div>
 
-</div>
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <!-- Products Grid -->
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Products will be inserted here by JavaScript -->
+        </div>
 
+        <!-- Empty State (hidden by default) -->
+        <div id="empty-products-state"
+            class="col-span-full flex flex-col items-center justify-center py-16 px-4 hidden">
+            <div class="bg-gray-100 rounded-full p-8 mb-6 shadow-inner relative overflow-hidden">
+                <i class="fas fa-box-open text-5xl text-gray-400 relative z-10"></i>
+                <!-- Floating dots animation -->
+                <div class="absolute inset-0 opacity-30">
+                    <div class="w-2 h-2 bg-gray-300 rounded-full absolute top-2 left-4 animate-bounce"
+                        style="animation-delay: 0s;"></div>
+                    <div class="w-1.5 h-1.5 bg-gray-300 rounded-full absolute top-6 right-3 animate-bounce"
+                        style="animation-delay: 0.2s;"></div>
+                    <div class="w-1 h-1 bg-gray-300 rounded-full absolute bottom-4 left-6 animate-bounce"
+                        style="animation-delay: 0.4s;"></div>
+                </div>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">ไม่มีสินค้าในขณะนี้</h3>
+            <p class="text-gray-500 text-center max-w-md text-sm mb-4">
+                ขออภัย ไม่มีสินค้าที่เปิดขายในขณะนี้ กรุณาติดตามข่าวสารเพื่อรอสินค้าใหม่
+            </p>
+            <div class="flex items-center text-blue-500 text-sm animate-pulse">
+                <i class="fas fa-sync-alt mr-2"></i>
+                <span>กำลังอัปเดตสินค้าใหม่...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Detail View (hidden by default) -->
+    <div id="product-detail-view" class="hidden">
+        <!-- Back button -->
+        <div class="mb-6">
+            <button id="back-to-products"
+                class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95">
+                <i class="fas fa-arrow-left mr-2"></i>
+                <span class="hidden sm:inline">กลับไปหน้ารายการสินค้า</span>
+                <span class="sm:hidden">กลับ</span>
+            </button>
+        </div>
+
+        <!-- Main product container -->
+        <div id="product-detail-container"
+            class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+                <!-- Image section -->
+                <div id="product-images-section" class="p-4 md:p-6 bg-gray-50">
+                    <!-- Image gallery will be inserted here -->
+                </div>
+
+                <!-- Product info section -->
+                <div class="p-4 md:p-6 lg:p-8">
+                    <form id="add-to-cart-form" class="h-full flex flex-col">
+                        <!-- Product Info -->
+                        <div id="product-info-section" class="space-y-6">
+                            <!-- Product title and rating -->
+                            <div class="border-b border-gray-200 pb-4">
+                                <h1 id="product-title" class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                                    <!-- Product name will be inserted here -->
+                                </h1>
+                            </div>
+
+                            <!-- Price and stock -->
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p id="product-price-display" class="text-2xl md:text-3xl font-bold text-blue-600">
+                                        <!-- Price will be updated here -->
+                                    </p>
+                                    <p id="product-stock-display" class="text-sm text-gray-600">
+                                        <!-- Stock info will be updated here -->
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Options -->
+                        <div id="product-options-section" class="space-y-4 mb-6">
+                            <!-- Options will be inserted here by JavaScript -->
+                        </div>
+
+                        <!-- Quantity Selector -->
+                        <div id="quantity-section" class="flex items-center space-x-4 mb-6">
+                            <label id="quantity-label" class="text-sm font-medium text-gray-700 min-w-0">
+                                จำนวน:
+                            </label>
+                            <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                                <button type="button" id="decrease-qty"
+                                    class="px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <i class="fas fa-minus text-sm text-gray-600"></i>
+                                </button>
+                                <input type="number" id="quantity-input" name="quantity" value="1" min="1" max="10"
+                                    class="w-16 text-center py-2 border-0 focus:ring-0 focus:outline-none bg-white">
+                                <button type="button" id="increase-qty"
+                                    class="px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <i class="fas fa-plus text-sm text-gray-600"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex-grow"></div>
+
+                        <!-- Add to Cart Button -->
+                        <div
+                            class="sticky bottom-0 bg-white border-t border-gray-200 p-4 md:relative md:border-0 md:bg-transparent md:p-0">
+                            <button type="submit" id="add-to-cart-button"
+                                class="w-full py-4 px-6 rounded-xl font-bold text-lg shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 active:scale-95 bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl">
+                                <i class="fas fa-cart-plus mr-2"></i>
+                                เพิ่มลงตะกร้า
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Description section -->
+            <div id="product-description-section" class="p-4 md:p-6 lg:p-8 border-t border-gray-200 bg-gray-50">
+                <h3 class="text-xl font-semibold mb-4 flex items-center text-gray-800">
+                    <i class="fas fa-info-circle mr-2 text-blue-500"></i>
+                    รายละเอียดสินค้า
+                </h3>
+                <div class="prose prose-sm max-w-none">
+                    <div class="bg-white rounded-xl p-4 border-l-4 border-blue-500">
+                        <p id="product-description-text" class="text-gray-700 whitespace-pre-line leading-relaxed">
+                            <!-- Description will be inserted here -->
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Not Found State (hidden by default) -->
+    <div id="product-not-found" class="text-center py-16 hidden">
+        <div class="bg-red-100 rounded-full p-6 w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+            <i class="fas fa-exclamation-triangle text-3xl text-red-500"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">ไม่พบข้อมูลสินค้า</h3>
+        <p class="text-gray-600 mb-4">สินค้าที่คุณค้นหาอาจถูกลบหรือไม่มีอยู่ในระบบ</p>
+        <button id="back-to-products-from-error"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300">
+            กลับไปหน้ารายการสินค้า
+        </button>
+    </div>
 </div>
+
+<!-- Templates for JavaScript (hidden) -->
+<template id="product-card-template">
+    <div
+        class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 overflow-hidden border border-gray-100">
+        <a href="#" class="product-link block">
+            <div class="relative overflow-hidden">
+                <img class="product-image w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
+                    alt="">
+                <!-- Subtle overlay on hover -->
+                <div
+                    class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300">
+                </div>
+                <div class="stock-badge">
+                    <!-- Stock badge will be inserted here -->
+                </div>
+                <!-- Corner decoration -->
+                <div
+                    class="absolute bottom-0 right-0 w-0 h-0 border-l-[20px] border-l-transparent border-b-[20px] border-b-blue-500 opacity-20">
+                </div>
+            </div>
+            <div class="p-4 relative">
+                <!-- Floating icon -->
+                <div
+                    class="absolute -top-3 right-3 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <i class="fas fa-eye"></i>
+                </div>
+
+                <h3
+                    class="product-name text-sm font-medium text-gray-800 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+                    <!-- Product name will be inserted here -->
+                </h3>
+
+                <div class="flex items-center justify-between">
+                    <p class="product-price text-lg font-bold text-blue-600">
+                        <!-- Price will be inserted here -->
+                    </p>
+                </div>
+
+                <!-- Bottom border animation -->
+                <div
+                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300">
+                </div>
+            </div>
+        </a>
+    </div>
+</template>
+
+<template id="option-template">
+    <div class="option-group">
+        <label class="option-label block text-sm font-medium text-gray-700 mb-2">
+            <!-- Option name will be inserted here -->
+        </label>
+        <select
+            class="product-option-select w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white hover:border-gray-400">
+            <!-- Options will be inserted here -->
+        </select>
+    </div>
+</template>
+
+<template id="image-carousel-template">
+    <div class="relative group" data-carousel="slide">
+        <!-- Image counter -->
+        <div
+            class="absolute top-4 left-4 bg-white bg-opacity-90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-medium text-gray-700 shadow-md z-40">
+            <i class="fas fa-images mr-1 text-blue-500"></i>
+            <span id="current-slide">1</span>/<span id="total-slides"></span>
+        </div>
+
+        <!-- Slides container -->
+        <div
+            class="slides-container relative h-64 md:h-96 lg:h-[500px] overflow-hidden rounded-xl shadow-lg bg-gray-50">
+            <!-- Images will be inserted here -->
+        </div>
+
+        <!-- Navigation dots -->
+        <div class="carousel-indicators absolute z-30 flex -translate-x-1/2 bottom-5 left-1/2 space-x-2">
+            <!-- Dots will be inserted here -->
+        </div>
+
+        <!-- Previous button -->
+        <button type="button"
+            class="carousel-prev absolute top-0 left-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            data-carousel-prev>
+            <span
+                class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
+                <i class="fas fa-chevron-left text-gray-600"></i>
+            </span>
+        </button>
+
+        <!-- Next button -->
+        <button type="button"
+            class="carousel-next absolute top-0 right-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            data-carousel-next>
+            <span
+                class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
+                <i class="fas fa-chevron-right text-gray-600"></i>
+            </span>
+        </button>
+    </div>
+</template>
+
+<template id="single-image-template">
+    <div class="relative group">
+        <img class="single-product-image w-full h-auto max-h-[400px] md:max-h-[500px] object-contain rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-105"
+            alt="">
+        <!-- Image badge -->
+        <div
+            class="absolute top-4 left-4 bg-white bg-opacity-90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-medium text-gray-700 shadow-md">
+            <i class="fas fa-image mr-1 text-blue-500"></i>
+            1 รูป
+        </div>
+    </div>
+</template>

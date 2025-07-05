@@ -15,7 +15,7 @@
   // ===== Page Initialization Mapping =====
   const pageInitializers = {
     'home-page': 'initializeHomePage',
-    'login-page': 'initializeLoginPage', 
+    'login-page': 'initializeLoginPage',
     'register-page': 'initializeRegisterPage',
     'shop-page': 'initializeShopPage',
     'cart-page': 'initializeCartPage',
@@ -31,17 +31,35 @@
     // แสดงหน้าที่เลือก
     $(`#${pageId}`).removeClass('hidden');
 
+    // Load page-specific data
+    switch (pageId) {
+      case "home-page":
+        initializeHomePage();
+        break;
+      case "login-page":
+        initializeLoginPage();
+        break;
+      case "register-page":
+        initializeRegisterPage();
+        break;
+      case "shop-page":
+        loadShopPageData();
+        break;
+      case "cart-page":
+        initializeCartPage();
+        break;
+      case "order-history-page":
+        break;
+      case "profile-page":
+        break;
+    }
+
     // อัปเดต current page
     currentPage = pageId;
-
-    // อัปเดต active state ของเมนู
-    //updateActiveNavMenu(pageId);
 
     // ปิด mobile menu หากเปิดอยู่
     $('#mobile-menu').addClass('hidden');
     $('#mobile-menu-button i').removeClass('fa-times').addClass('fa-bars');
-
-    initializePage(pageId);
 
     // Scroll to top
     window.scrollTo(0, 0);
@@ -49,7 +67,7 @@
 
   function initializePage(pageId) {
     const initializerName = pageInitializers[pageId];
-    
+
     if (initializerName && typeof window[initializerName] === 'function') {
       try {
         //console.log(`Initializing page: ${pageId} with ${initializerName}`);
@@ -60,7 +78,7 @@
     } else {
       //console.log(`No initializer found for page: ${pageId}`);
     }
-  }  
+  }
 
   // function updateActiveNavMenu(pageId) {
   //   // ลบ active class จากทุกปุ่ม

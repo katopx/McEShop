@@ -12,6 +12,7 @@ const SHEETS = {
   registeredStudents: 'registeredStudents',
   studyGroups: 'studyGroups',
   siteProducts: 'siteProducts',
+  userCarts: 'userCarts',
   studentOrders: 'studentOrders',
   systemSettings: 'systemSettings',
   discountCodes: 'discountCodes',
@@ -94,6 +95,25 @@ function getSheet(sheetName) {
             ],
           ]);
         break;
+
+      case "userCarts":
+        sheet
+          .getRange(1, 1, 1, 9)
+          .setValues([
+            [
+              "userId",
+              "productId", 
+              "variantSku",
+              "quantity",
+              "price",
+              "name",
+              "image",
+              "maxStock",
+              "addedDate",
+              "updatedDate"
+            ]
+          ]);
+      break;
 
       case "siteProducts":
         sheet

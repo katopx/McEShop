@@ -1,0 +1,47 @@
+<script>
+  async function loadShopPageData() {
+    showLoading();
+
+    try {
+      const data = await new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(reject)
+          .loadProductsData();
+      });
+
+      siteProducts = data.siteProducts || [];
+
+      initializeShopPage();
+
+    } catch (error) {
+      console.error("Load error:", error);
+      Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลสินค้าได้", "error");
+    } finally {
+      hideLoading();
+    }
+  }
+
+  async function loadCartPageData() {
+    showLoading();
+
+    try {
+      //   const data = await new Promise((resolve, reject) => {
+      //     google.script.run
+      //       .withSuccessHandler(resolve)
+      //       .withFailureHandler(reject)
+      //       .loadProductsData();
+      //   });
+
+      //   siteProducts = data.siteProducts || [];
+
+      initializeCartPage();
+
+    } catch (error) {
+      console.error("Load error:", error);
+      Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลตะกร้าสินค้าได้", "error");
+    } finally {
+      hideLoading();
+    }
+  }
+</script>

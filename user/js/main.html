@@ -1,10 +1,10 @@
 <script>
   // ===== Main Application Initialization =====
-  $(document).ready(function() {
+  $(document).ready(function () {
 
     checkExistingLogin();
     initializeNavbar();
-    
+
     // Check initial user state
     if (currentUser) {
       updateNavbarForLoggedInUser();
@@ -16,10 +16,10 @@
         toast: true,
         position: 'top-end'
       });
-      initializeProductListPage();
+      showPage('shop-page');
     } else {
       updateNavbarForGuestUser();
-      initializeHomePage();
+      showPage('home-page');
     }
 
   });
