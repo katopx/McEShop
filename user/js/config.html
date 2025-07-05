@@ -17,7 +17,6 @@
     'home-page': 'initializeHomePage',
     'login-page': 'initializeLoginPage', 
     'register-page': 'initializeRegisterPage',
-    'productlist-page': 'initializeProductListPage',
     'shop-page': 'initializeShopPage',
     'cart-page': 'initializeCartPage',
     'order-history-page': 'initializeOrderHistoryPage',
@@ -36,7 +35,7 @@
     currentPage = pageId;
 
     // อัปเดต active state ของเมนู
-    updateActiveNavMenu(pageId);
+    //updateActiveNavMenu(pageId);
 
     // ปิด mobile menu หากเปิดอยู่
     $('#mobile-menu').addClass('hidden');
@@ -63,30 +62,30 @@
     }
   }  
 
-  function updateActiveNavMenu(pageId) {
-    // ลบ active class จากทุกปุ่ม
-    $('.nav-item, .nav-item-mobile').removeClass('bg-blue-100 text-blue-600');
+  // function updateActiveNavMenu(pageId) {
+  //   // ลบ active class จากทุกปุ่ม
+  //   $('.nav-item, .nav-item-mobile').removeClass('bg-blue-100 text-blue-600');
 
-    // เพิ่ม active class ให้ปุ่มที่เลือก
-    switch (pageId) {
-      case 'home-page':
-      case 'dashboard-page':
-        $('#home-button, #home-button-mobile').addClass('bg-blue-100 text-blue-600');
-        break;
-      case 'shop-page':
-        $('#shop-button, #shop-button-mobile').addClass('bg-green-100 text-green-600');
-        break;
-      case 'cart-page':
-        $('#cart-button, #cart-button-mobile').addClass('bg-purple-100 text-purple-600');
-        break;
-      case 'order-history-page':
-        $('#order-history-button, #order-history-button-mobile').addClass('bg-orange-100 text-orange-600');
-        break;
-      case 'profile-page':
-        $('#profile-button, #profile-button-mobile').addClass('bg-indigo-100 text-indigo-600');
-        break;
-    }
-  }
+  //   // เพิ่ม active class ให้ปุ่มที่เลือก
+  //   switch (pageId) {
+  //     case 'home-page':
+  //     case 'dashboard-page':
+  //       $('#home-button, #home-button-mobile').addClass('bg-blue-100 text-blue-600');
+  //       break;
+  //     case 'shop-page':
+  //       $('#shop-button, #shop-button-mobile').addClass('bg-green-100 text-green-600');
+  //       break;
+  //     case 'cart-page':
+  //       $('#cart-button, #cart-button-mobile').addClass('bg-purple-100 text-purple-600');
+  //       break;
+  //     case 'order-history-page':
+  //       $('#order-history-button, #order-history-button-mobile').addClass('bg-orange-100 text-orange-600');
+  //       break;
+  //     case 'profile-page':
+  //       $('#profile-button, #profile-button-mobile').addClass('bg-indigo-100 text-indigo-600');
+  //       break;
+  //   }
+  // }
 
   // ===== Navbar Update Functions =====
   function updateNavbarForLoggedInUser() {
@@ -98,7 +97,7 @@
     $('#logout-button, #logout-button-mobile').removeClass('hidden');
 
     // ซ่อนเมนูสำหรับผู้ใช้ที่ล็อกอิน
-    $('#home-text, #home-text-mobile').addClass('hidden');
+    $('#home-button, #home-button-mobile').addClass('hidden');
 
   }
 
@@ -110,7 +109,7 @@
     $('#logout-button, #logout-button-mobile').addClass('hidden');
 
     // แสดงเมนูสำหรับผู้ใช้ที่ยังไม่ล็อกอิน
-    $('#home-text, #home-text-mobile').removeClass('hidden');
+    $('#home-button, #home-button-mobile').removeClass('hidden');
 
   }
 

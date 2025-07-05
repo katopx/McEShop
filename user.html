@@ -29,7 +29,7 @@
     <!-- Go to Admin -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('admin-fab').addEventListener('click', function () {window.location.href = "<?= getUrl(); ?>?page=admin";});
+            document.getElementById('admin-fab').addEventListener('click', function () { window.location.href = "<?= getUrl(); ?>?page=admin"; });
         });
     </script>
 
@@ -58,6 +58,26 @@
         <!-- Register Page -->
         <div id="register-page" class="page-content hidden">
             <?!= include('user/02_register') ?>
+        </div>
+
+        <!-- Shop Page -->
+        <div id="shop-page" class="page-content hidden">
+            <?!= include('user/03_shop') ?>
+        </div>
+
+        <!-- Cart Page -->
+        <div id="cart-page" class="page-content hidden">
+            <?!= include('user/04_cart') ?>
+        </div>
+
+        <!-- OrderHistory Page -->
+        <div id="order-history-page" class="page-content hidden">
+            <?!= include('user/05_history') ?>
+        </div>
+
+        <!-- Profile Page -->
+        <div id="profile-page" class="page-content hidden">
+            <?!= include('user/06_profile') ?>
         </div>
 
     </main>
@@ -89,6 +109,10 @@
     <?!= include('user/js/00_home') ?>
     <?!= include('user/js/01_login') ?>
     <?!= include('user/js/02_register') ?>
+    <?!= include('user/js/03_shop') ?>
+    <?!= include('user/js/04_cart') ?>
+    <?!= include('user/js/05_history') ?>
+    <?!= include('user/js/06_profile') ?>
 
     <?!= include('user/js/ui') ?>
     <?!= include('user/js/main') ?>

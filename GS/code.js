@@ -9,9 +9,12 @@ const SPREADSHEET_ID = "1g5YJdNwIIWc1qmD2cmAct88oVBHo5VGoHX8slqNa2VE";
 const SHEETS = {
   adminUsers: 'adminUsers',
   roles: 'roles',
-  registeredUsers: 'registeredStudents',
+  registeredStudents: 'registeredStudents',
   studyGroups: 'studyGroups',
   siteProducts: 'siteProducts',
+  studentOrders: 'studentOrders',
+  systemSettings: 'systemSettings',
+  discountCodes: 'discountCodes',
 };
 
 
@@ -94,7 +97,7 @@ function getSheet(sheetName) {
 
       case "siteProducts":
         sheet
-          .getRange(1, 1, 1, 10)
+          .getRange(1, 1, 1, 11)
           .setValues([
             [
               "id",

@@ -27,6 +27,7 @@
                         timer: 1500,
                         showConfirmButton: false
                     }).then(() => {
+                        showPage('shop-page');
                         updateNavbarForLoggedInUser();
                     });
                 } else {
@@ -54,13 +55,15 @@
             if (result.isConfirmed) {
                 currentUser = null;
                 localStorage.removeItem('currentUser');
-                updateNavbarForGuestUser();
 
                 Swal.fire({
-                    title: 'ออกจากระบบสำเร็จ',
                     icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
+                    title: 'ออกจากระบบแล้ว',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    showPage('home-page');
+                    updateNavbarForGuestUser();
                 });
             }
         });
@@ -72,6 +75,7 @@
         if (savedUser) {
             currentUser = JSON.parse(savedUser);
             updateNavbarForLoggedInUser();
+            showPage('shop-page');
         }
     }
 </script>

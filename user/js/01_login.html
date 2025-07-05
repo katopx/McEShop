@@ -6,23 +6,23 @@
   // ===== Event Handlers =====
   function bindLoginEventHandlers() {
     // Back to Home Button
-    $(document).on('click', '#back-to-home', function() {
+    $(document).on('click', '#back-to-home', function () {
       showPage('home-page');
     });
 
     // Switch to Register Button
-    $(document).on('click', '#switch-to-register', function() {
+    $(document).on('click', '#switch-to-register', function () {
       showPage('register-page');
     });
 
     // Login Form Submission
-    $(document).on('submit', '#login-form', function(e) {
+    $(document).on('submit', '#login-form', function (e) {
       e.preventDefault();
       handleLogin();
     });
 
     // Enter key support
-    $(document).on('keypress', '#login-fullname, #login-phone', function(e) {
+    $(document).on('keypress', '#login-fullname, #login-phone', function (e) {
       if (e.which === 13) {
         $('#login-form').submit();
       }

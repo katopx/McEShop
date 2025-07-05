@@ -2,11 +2,21 @@
   // ===== Main Application Initialization =====
   $(document).ready(function() {
 
+    checkExistingLogin();
     initializeNavbar();
     
     // Check initial user state
     if (currentUser) {
       updateNavbarForLoggedInUser();
+      Swal.fire({
+        icon: 'success',
+        title: `ยินดีต้อนรับ ${currentUser.fullname}`,
+        showConfirmButton: false,
+        timer: 1200,
+        toast: true,
+        position: 'top-end'
+      });
+      initializeProductListPage();
     } else {
       updateNavbarForGuestUser();
       initializeHomePage();

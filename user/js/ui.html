@@ -3,7 +3,7 @@
     // Desktop Navigation Event Handlers
     $('#home-button').on('click', function() {
       if (currentUser) {
-        showPage('productlist-page');
+        showPage('shop-page');
       } else {
         showPage('home-page');
       }
@@ -32,7 +32,7 @@
     // Mobile Navigation Event Handlers
     $('#home-button-mobile').on('click', function() {
       if (currentUser) {
-        showPage('productlist-page');
+        showPage('shop-page');
       } else {
         showPage('home-page');
       }
@@ -73,7 +73,7 @@
     $('#logo-link').on('click', function(e) {
       e.preventDefault();
       if (currentUser) {
-        showPage('productlist-page');
+        showPage('shop-page');
       } else {
         showPage('home-page');
       }
